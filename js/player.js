@@ -374,6 +374,46 @@ function setupMediaSessionHandlers() {
     }
     if (details.seekTime !== undefined) audioEl.currentTime = details.seekTime;
   });
+  /* anula los saltos de 10s de iOS/Android para que el bloqueo de
+     pantalla muestre siempre anterior/siguiente en vez de +10/-10 */
+  try {
+    navigator.mediaSession.setActionHandler("seekbackward", null);
+    navigator.mediaSession.setActionHandler("seekforward", null);
+  } catch (e) {
+    /* algunos navegadores no reconocen estas acciones; se ignora */
+  }
+}
+
+/* ---------------- fondo rotativo de "lo que significa para ti" ---------------- */
+
+const MEANING_BACKGROUNDS = [
+  "../images/backgrounds/meaning/1.jpg",
+  "../images/backgrounds/meaning/2.jpg",
+  "../images/backgrounds/meaning/3.jpg",
+  "../images/backgrounds/meaning/4.jpg",
+];
+
+function setupMeaningBackgroundRotation() {
+  const layerA = document.getElementById("meaningBgA");
+  const layerB = document.getElementById("meaningBgB");
+  if (!layerA || !layerB || MEANING_BACKGROUNDS.length === 0) return;
+
+  let index = 0;
+  let showingA = true;
+  layerA.style.backgroundImage = `url("${MEANING_BACKGROUNDS[0]}")`;
+  layerA.classList.add("is-visible");
+
+  if (MEANING_BACKGROUNDS.length < 2) return;
+
+  setInterval(() => {
+    index = (index + 1) % MEANING_BACKGROUNDS.length;
+    const next = showingA ? layerB : layerA;
+    const current = showingA ? layerA : layerB;
+    next.style.backgroundImage = `url("${MEANING_BACKGROUNDS[index]}")`;
+    next.classList.add("is-visible");
+    current.classList.remove("is-visible");
+    showingA = !showingA;
+  }, 25000);
 }
 
 /* ---------------- visor de imagen (lightbox) ---------------- */
@@ -934,6 +974,7 @@ audioEl.volume = Number(volumeBar.value);
 setupMediaSessionHandlers();
 renderAlbumGallery();
 renderFavorites();
+setupMeaningBackgroundRotation();
 setupScrollReveal(".album-card", 90);
 setupScrollReveal(".singles-orb, .singles-orb-label", 100);
 setupScrollReveal(".favorite-item", 70);

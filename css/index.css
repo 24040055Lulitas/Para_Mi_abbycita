@@ -23,6 +23,7 @@
 
 html {
   scroll-behavior: smooth;
+  overscroll-behavior-y: none;
 }
 
 html, body {
@@ -35,6 +36,7 @@ body {
   background: var(--color-black);
   min-height: 100vh;
   overflow-x: hidden;
+  overscroll-behavior-y: none;
   padding-bottom: calc(var(--mini-player-h) + env(safe-area-inset-bottom, 0px));
 }
 
@@ -96,6 +98,40 @@ body::before {
   font-size: clamp(28px, 4.5vw, 42px);
   letter-spacing: 0.5px;
   margin-top: 6px;
+}
+
+/* ---------- iconos decorativos (recortados del sticker set de Abby) ---------- */
+
+.deco-icon {
+  display: inline-block;
+  width: 26px;
+  height: 26px;
+  margin-left: 10px;
+  vertical-align: middle;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));
+}
+
+.deco-icon--tile {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+}
+
+.deco-icon--a {
+  transform: rotate(-9deg);
+}
+
+.deco-icon--b {
+  transform: rotate(8deg);
+}
+
+.deco-icon--closing {
+  display: block;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  margin: 0 auto 22px;
+  transform: rotate(-6deg);
 }
 
 @keyframes fade-up {
@@ -291,9 +327,14 @@ body::before {
 
 .dedication,
 .albums,
-.meaning,
 .favorites,
 .closing {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 90px 24px;
+}
+
+.meaning-content {
   max-width: 1100px;
   margin: 0 auto;
   padding: 90px 24px;
@@ -308,9 +349,12 @@ body::before {
 @media (max-width: 640px) {
   .dedication,
   .albums,
-  .meaning,
   .favorites,
   .closing {
+    padding: 56px 18px;
+  }
+
+  .meaning-content {
     padding: 56px 18px;
   }
 
@@ -535,7 +579,41 @@ body::before {
 /* ---------- lo que significa para ti (conversación) ---------- */
 
 .meaning {
+  position: relative;
+  overflow: hidden;
   text-align: center;
+}
+
+.meaning-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-size: cover;
+  background-position: center 22%;
+  filter: brightness(0.36) saturate(1.05);
+  opacity: 0;
+  transition: opacity 1.6s ease;
+}
+
+.meaning-bg.is-visible {
+  opacity: 1;
+}
+
+.meaning-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(10, 10, 13, 0.55) 0%,
+    rgba(10, 10, 13, 0.7) 55%,
+    var(--color-black) 100%
+  );
+}
+
+.meaning-content {
+  position: relative;
+  z-index: 1;
 }
 
 .chat-mock {
@@ -586,7 +664,8 @@ body::before {
 
 .chat-bubble--her {
   align-self: flex-start;
-  background: var(--surface);
+  background: rgba(10, 10, 13, 0.55);
+  backdrop-filter: blur(10px);
   border: 1px solid var(--border);
   border-bottom-left-radius: 4px;
   color: var(--text-main);
@@ -869,7 +948,8 @@ body::before {
   height: 46px;
   background: linear-gradient(135deg, var(--color-blue), var(--color-pink));
   color: var(--color-black);
-  box-shadow: 0 6px 18px rgba(255, 94, 168, 0.4);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.45);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .play-btn svg {
@@ -882,6 +962,7 @@ body::before {
 .play-btn:hover {
   transform: scale(1.06);
   color: var(--color-black);
+  box-shadow: 0 4px 14px rgba(255, 94, 168, 0.35);
 }
 
 input[type="range"] {
@@ -1417,6 +1498,9 @@ input[type="range"]::-moz-range-thumb {
   background: var(--surface-strong);
   border-top: 1px solid var(--border);
   backdrop-filter: blur(18px);
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .mini-track {
