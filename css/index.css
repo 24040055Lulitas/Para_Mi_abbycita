@@ -477,6 +477,12 @@ body::before {
   color: var(--card-border, var(--color-pink));
 }
 
+.album-card:active {
+  transform: translateY(-2px) scale(0.98);
+  border-color: var(--card-border, var(--color-pink));
+  box-shadow: 0 10px 22px var(--card-glow, rgba(255, 94, 168, 0.25));
+}
+
 .album-card-cover {
   width: 100%;
   aspect-ratio: 1 / 1;
@@ -529,6 +535,14 @@ body::before {
 
 .singles-orb:hover {
   transform: scale(1.06);
+}
+
+.singles-orb:active {
+  transform: scale(0.96);
+}
+
+.singles-orb:active .singles-orb-ring {
+  animation-duration: 2.5s;
 }
 
 .singles-orb-ring {
@@ -728,6 +742,10 @@ body::before {
   transform: scale(1.06);
 }
 
+.secret-btn:active {
+  transform: scale(0.96);
+}
+
 @keyframes secretGradient {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
@@ -789,6 +807,12 @@ body::before {
 
 .favorite-item.playing::before {
   opacity: 1;
+  animation: playingBarPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes playingBarPulse {
+  0%, 100% { opacity: 0.65; transform: scaleY(0.85); }
+  50% { opacity: 1; transform: scaleY(1); }
 }
 
 .favorite-num {
@@ -803,8 +827,8 @@ body::before {
 
 .favorite-cover,
 .mini-cover {
+  position: relative;
   border-radius: 8px;
-  overflow: hidden;
   flex-shrink: 0;
   background: linear-gradient(135deg, var(--color-blue), var(--color-black) 40%, var(--color-red));
 }
@@ -813,6 +837,7 @@ body::before {
 .mini-cover img {
   width: 100%;
   height: 100%;
+  border-radius: 8px;
   object-fit: cover;
 }
 
@@ -984,6 +1009,11 @@ body::before {
   color: var(--color-pink);
 }
 
+.ctrl-btn:active {
+  transform: scale(0.88);
+  background: rgba(255,255,255,0.1);
+}
+
 .ctrl-btn.active {
   color: var(--color-green);
 }
@@ -1008,6 +1038,11 @@ body::before {
   transform: scale(1.06);
   color: var(--color-black);
   box-shadow: 0 4px 14px rgba(255, 94, 168, 0.35);
+}
+
+.play-btn:active {
+  transform: scale(0.92);
+  box-shadow: 0 2px 8px rgba(255, 94, 168, 0.4);
 }
 
 input[type="range"] {
@@ -1129,6 +1164,7 @@ input[type="range"]::-moz-range-thumb {
 
 .track-item.playing::before {
   opacity: 1;
+  animation: playingBarPulse 1.6s ease-in-out infinite;
 }
 
 .track-num {
@@ -1213,14 +1249,23 @@ input[type="range"]::-moz-range-thumb {
 
 .action-btn.like-btn.liked {
   color: var(--color-red);
+  animation: heartPop 0.4s ease;
 }
 
 .action-btn.like-btn.liked svg {
   fill: currentColor;
 }
 
+@keyframes heartPop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.35); }
+  60% { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+
 .action-btn.queue-btn.queued {
   color: var(--color-green);
+  animation: heartPop 0.4s ease;
 }
 
 .action-btn:active {
@@ -1546,6 +1591,29 @@ input[type="range"]::-moz-range-thumb {
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
   backface-visibility: hidden;
+}
+
+.mini-player::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-blue), var(--color-pink), var(--color-red), var(--color-green), var(--color-blue));
+  background-size: 300% 100%;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+
+.mini-player.is-playing::before {
+  opacity: 1;
+  animation: miniPlayerGlow 7s linear infinite;
+}
+
+@keyframes miniPlayerGlow {
+  to { background-position: 300% 0; }
 }
 
 .mini-track {

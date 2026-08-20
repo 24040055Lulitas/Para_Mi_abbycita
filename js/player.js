@@ -52,6 +52,7 @@ const queuePanelClose = document.getElementById("queuePanelClose");
 const queueClearBtn = document.getElementById("queueClearBtn");
 const queueListEl = document.getElementById("queueList");
 
+const miniPlayer = document.getElementById("miniPlayer");
 const miniCoverWrap = document.getElementById("miniCoverWrap");
 const miniCover = document.getElementById("miniCover");
 const miniTitle = document.getElementById("miniTitle");
@@ -309,6 +310,7 @@ function setPlayingUI(isPlaying) {
   pauseIcon.style.display = isPlaying ? "block" : "none";
   playBtn.title = isPlaying ? "Pausar" : "Reproducir";
   miniCoverWrap.classList.toggle("is-playing", isPlaying);
+  miniPlayer.classList.toggle("is-playing", isPlaying);
   updatePanelCoverSpin();
   if ("mediaSession" in navigator) {
     navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
