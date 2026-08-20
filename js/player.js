@@ -44,11 +44,6 @@ const singlesPanelBackdrop = document.getElementById("singlesPanelBackdrop");
 const singlesPanelClose = document.getElementById("singlesPanelClose");
 const singlesListEl = document.getElementById("singlesList");
 
-const secretBtn = document.getElementById("secretBtn");
-const secretPanelBackdrop = document.getElementById("secretPanelBackdrop");
-const secretPanelClose = document.getElementById("secretPanelClose");
-const secretGalleryEl = document.getElementById("secretGallery");
-
 const favoritesListEl = document.getElementById("favoritesList");
 
 const queueBtn = document.getElementById("queueBtn");
@@ -423,47 +418,6 @@ function setupMeaningBackgroundRotation() {
     showingA = !showingA;
   }, 25000);
 }
-
-/* ---------------- galería secreta de Tanjiro ---------------- */
-
-const SECRET_IMAGES = Array.from(
-  { length: 10 },
-  (_, i) => `../images/secret-tanjiro/${i + 1}.jpg`
-);
-
-function renderSecretGallery() {
-  secretGalleryEl.innerHTML = "";
-  SECRET_IMAGES.forEach((src, i) => {
-    const tile = document.createElement("div");
-    tile.className = "secret-tile";
-    tile.style.transitionDelay = `${i * 45}ms`;
-    const img = document.createElement("img");
-    img.src = src;
-    img.alt = `Tanjiro ${i + 1}`;
-    img.loading = "lazy";
-    img.onerror = () => tile.classList.add("is-missing");
-    tile.appendChild(img);
-    tile.addEventListener("click", () => {
-      if (!tile.classList.contains("is-missing")) openLightbox(src, img.alt);
-    });
-    secretGalleryEl.appendChild(tile);
-  });
-}
-
-function openSecretPanel() {
-  renderSecretGallery();
-  secretPanelBackdrop.classList.add("open");
-}
-
-function closeSecretPanel() {
-  secretPanelBackdrop.classList.remove("open");
-}
-
-secretBtn.addEventListener("click", openSecretPanel);
-secretPanelClose.addEventListener("click", closeSecretPanel);
-secretPanelBackdrop.addEventListener("click", (e) => {
-  if (e.target === secretPanelBackdrop) closeSecretPanel();
-});
 
 /* ---------------- visor de imagen (lightbox) ---------------- */
 
@@ -901,7 +855,6 @@ document.addEventListener("keydown", (e) => {
   else if (albumPanelBackdrop.classList.contains("open")) closeAlbumPanel();
   else if (queuePanelBackdrop.classList.contains("open")) closeQueuePanel();
   else if (singlesPanelBackdrop.classList.contains("open")) closeSinglesPanel();
-  else if (secretPanelBackdrop.classList.contains("open")) closeSecretPanel();
 });
 
 const dedicationPhotoImg = document.querySelector(".dedication-photo img");
