@@ -1,22 +1,18 @@
 /* ============================================================
    secreT — galería de Tanjiro + música de fondo.
    Página aparte del reproductor principal, sin cola ni
-   MediaSession: solo un par de canciones sonando de fondo.
+   MediaSession: una sola canción en loop, con su propio control
+   de reproducción y volumen.
    ============================================================ */
 (function () {
   "use strict";
 
   const TANJIRO_IMAGES = Array.from(
-    { length: 10 },
+    { length: 9 },
     (_, i) => `../images/secret-tanjiro/tanj${i + 1}.png`
   );
 
-  const AMBIENT_TRACKS = [
-    "../music/wwafawdwg/11-ilomilo.mp3",
-    "../music/hthe/08-halleys-comet.mp3",
-    "../music/hthe/04-my-future.mp3",
-    "../music/hmhas/05-wildflower.mp3",
-  ];
+  const AMBIENT_TRACK = "../music/secreto/kamado-tanjiro-no-uta.mp3";
 
   /* ---------------- galería tipo polaroid ---------------- */
 
@@ -144,19 +140,11 @@
   const ambientBtn = document.getElementById("ambientBtn");
   const ambientPlayIcon = document.getElementById("ambientPlayIcon");
   const ambientPauseIcon = document.getElementById("ambientPauseIcon");
+  const ambientVolume = document.getElementById("ambientVolume");
 
-  let ambientIndex = Math.floor(Math.random() * AMBIENT_TRACKS.length);
-  ambientAudio.volume = 0.4;
-
-  function loadAmbientTrack() {
-    ambientAudio.src = AMBIENT_TRACKS[ambientIndex];
-  }
-
-  function playNextAmbient() {
-    ambientIndex = (ambientIndex + 1) % AMBIENT_TRACKS.length;
-    loadAmbientTrack();
-    ambientAudio.play().catch(() => {});
-  }
+  ambientAudio.loop = true;
+  ambientAudio.volume = Number(ambientVolume.value);
+  ambientAudio.src = AMBIENT_TRACK;
 
   function setAmbientUI(playing) {
     ambientBtn.classList.toggle("is-playing", playing);
@@ -164,17 +152,18 @@
     ambientPauseIcon.style.display = playing ? "" : "none";
   }
 
-  ambientAudio.addEventListener("ended", playNextAmbient);
   ambientAudio.addEventListener("play", () => setAmbientUI(true));
   ambientAudio.addEventListener("pause", () => setAmbientUI(false));
 
   ambientBtn.addEventListener("click", () => {
-    if (!ambientAudio.src) loadAmbientTrack();
     if (ambientAudio.paused) ambientAudio.play().catch(() => {});
     else ambientAudio.pause();
   });
 
-  loadAmbientTrack();
+  ambientVolume.addEventListener("input", () => {
+    ambientAudio.volume = Number(ambientVolume.value);
+  });
+
   ambientAudio.play().catch(() => {
     /* el navegador bloqueó el autoplay sin interacción previa;
        el botón flotante sigue disponible para iniciarla a mano */
