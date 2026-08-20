@@ -104,6 +104,8 @@ function toggleLike(file, btn) {
   else likedFiles.add(file);
   saveLikedFiles();
   if (btn) btn.classList.toggle("liked", likedFiles.has(file));
+  /* las favoritas de Abby son, literalmente, las canciones con corazón */
+  renderFavorites();
 }
 
 function addToQueue(track) {
@@ -219,6 +221,26 @@ function resolveFavorite(entry) {
 }
 
 const FAVORITE_REFS = FAVORITES.map(resolveFavorite);
+
+/* la primera vez que se abre el sitio, las favoritas elegidas a mano
+   en data.js empiezan ya marcadas con corazón */
+const LIKED_SEEDED_KEY = "beplayer-liked-seeded";
+(function seedDefaultLikes() {
+  let alreadySeeded = false;
+  try {
+    alreadySeeded = !!localStorage.getItem(LIKED_SEEDED_KEY);
+  } catch (e) {
+    alreadySeeded = false;
+  }
+  if (alreadySeeded) return;
+  FAVORITE_REFS.forEach((track) => likedFiles.add(track.file));
+  saveLikedFiles();
+  try {
+    localStorage.setItem(LIKED_SEEDED_KEY, "1");
+  } catch (e) {
+    /* localStorage no disponible; se reintentará en la próxima carga */
+  }
+})();
 
 /* índice plano de TODAS las canciones (álbumes + sencillos), para el buscador */
 const SEARCH_INDEX = [
@@ -759,10 +781,25 @@ queueClearBtn.addEventListener("click", () => {
 
 /* ---------------- favoritas ---------------- */
 
+/* referencias completas de todo lo que tiene corazón, en el orden
+   en que se fue marcando (los sembrados por defecto van primero) */
+function likedTrackRefs() {
+  return [...likedFiles]
+    .map((file) => SEARCH_INDEX.find((t) => t.file === file))
+    .filter(Boolean);
+}
+
 function renderFavorites() {
   favoritesListEl.innerHTML = "";
+  const tracks = likedTrackRefs();
 
-  FAVORITE_REFS.forEach((track, i) => {
+  if (tracks.length === 0) {
+    favoritesListEl.innerHTML =
+      '<li class="search-empty">Toca el corazón de una canción para agregarla aquí.</li>';
+    return;
+  }
+
+  tracks.forEach((track, i) => {
     const li = document.createElement("li");
     li.className = "favorite-item";
     li.dataset.file = track.file;
@@ -776,7 +813,7 @@ function renderFavorites() {
       <span class="track-duration">${formatTime(track.dur)}</span>
       ${actionButtonsHTML(track)}
     `;
-    li.addEventListener("click", () => playQueueAt(FAVORITE_REFS, i, true));
+    li.addEventListener("click", () => playQueueAt(tracks, i, true));
     wireRowActions(li, track);
     wireCoverLightbox(li, track);
     favoritesListEl.appendChild(li);
