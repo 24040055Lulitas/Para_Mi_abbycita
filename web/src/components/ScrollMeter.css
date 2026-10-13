@@ -1,0 +1,59 @@
+.scroll-meter {
+  position: fixed;
+  top: max(20px, env(safe-area-inset-top, 0px));
+  right: max(20px, env(safe-area-inset-right, 0px));
+  z-index: 60;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', sans-serif;
+  pointer-events: none;
+}
+
+.scroll-meter-ring {
+  position: absolute;
+  inset: 0;
+  transform: rotate(-90deg);
+}
+
+.scroll-meter-track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 3;
+}
+
+.scroll-meter-fill {
+  fill: none;
+  stroke: url(#scrollMeterGradient);
+  stroke-width: 3;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 5px rgba(255, 94, 168, 0.5));
+  transition: stroke-dashoffset 0.2s linear;
+}
+
+.scroll-meter-num {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-main);
+  letter-spacing: 0.02em;
+}
+
+.scroll-meter-pct {
+  font-size: 8px;
+  color: var(--color-pink);
+  margin-top: 7px;
+  margin-left: 1px;
+}
+
+@media (max-width: 560px) {
+  .scroll-meter {
+    width: 44px;
+    height: 44px;
+  }
+
+  .scroll-meter-num {
+    font-size: 12px;
+  }
+}

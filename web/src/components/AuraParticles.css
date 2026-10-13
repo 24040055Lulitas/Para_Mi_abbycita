@@ -1,0 +1,47 @@
+.aura-field {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.aura-dot {
+  position: absolute;
+  bottom: -20px;
+  border-radius: 50%;
+  opacity: 0;
+  filter: blur(0.3px);
+  animation-name: auraRise;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes auraRise {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.85;
+  }
+  88% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateY(-104vh) scale(0.3);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .aura-field {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aura-field {
+    display: none;
+  }
+}
