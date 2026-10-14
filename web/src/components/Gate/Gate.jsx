@@ -4,7 +4,7 @@ import { usePlayer } from '../../context/PlayerContext';
 import { resolveTrackRef } from '../../data/catalog';
 import './Gate.css';
 
-const SESSION_KEY = 'abby-gate-entered';
+export const SESSION_KEY = 'abby-gate-entered';
 
 /* canción de entrada — "i love you" por ahora; cámbiala aquí
    (data/catalog.js tiene el catálogo completo) */
