@@ -1,0 +1,506 @@
+.letter-page {
+  --paper: #fbf5ee;
+  --paper-line: rgba(120, 140, 190, 0.16);
+  --margin-line: rgba(214, 92, 122, 0.45);
+  --ink: #3a2a33;
+  --ink-soft: #6c5a64;
+  --wine: #b23a66;
+  --rose: #d65c86;
+  --line: 34px;
+
+  position: relative;
+  min-height: 100vh;
+  padding-bottom: 140px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 120, 180, 0.12), transparent 55%),
+    #0c0a12;
+  color: var(--ink);
+}
+
+/* ---------- progreso de lectura ---------- */
+
+.letter-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 65;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.letter-progress span {
+  display: block;
+  height: 100%;
+  background: #ff9fcb;
+  transform-origin: left;
+  transition: transform 0.1s linear;
+}
+
+.letter-topbar {
+  padding: max(28px, env(safe-area-inset-top, 0px)) 24px 0;
+  text-align: center;
+}
+
+.letter-topbar p {
+  font-size: 12px;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: #ff9fcb;
+  font-weight: 700;
+}
+
+/* ---------- la hoja ---------- */
+
+.letter-desk {
+  max-width: 760px;
+  margin: 36px auto 0;
+  padding: 0 16px;
+}
+
+.letter-paper {
+  position: relative;
+  padding: calc(var(--line) * 2) 64px calc(var(--line) * 2) 104px;
+  border-radius: 4px;
+  background-color: var(--paper);
+  /* renglones + línea de margen, como una hoja de cuaderno */
+  background-image:
+    linear-gradient(90deg, transparent 76px, var(--margin-line) 76px, var(--margin-line) 78px, transparent 78px),
+    repeating-linear-gradient(180deg, transparent 0, transparent calc(var(--line) - 1px), var(--paper-line) calc(var(--line) - 1px), var(--paper-line) var(--line));
+  background-position: 0 0, 0 calc(var(--line) * 2 - 8px);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.6) inset,
+    0 40px 90px rgba(0, 0, 0, 0.55),
+    0 8px 20px rgba(0, 0, 0, 0.3);
+  font-family: 'Manrope', system-ui, sans-serif;
+  font-size: 17px;
+  line-height: var(--line);
+  animation: paperIn 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes paperIn {
+  from { opacity: 0; transform: translateY(30px) rotate(-0.6deg); }
+  to { opacity: 1; transform: none; }
+}
+
+.letter-paper > p,
+.letter-paper > .reveal {
+  margin-bottom: var(--line);
+}
+
+.letter-date {
+  text-align: right;
+  font-family: 'Caveat', cursive;
+  font-size: 22px;
+  color: var(--ink-soft);
+}
+
+.letter-greeting {
+  margin: var(--line) 0;
+  font-family: 'Caveat', cursive;
+  font-weight: 600;
+  font-size: 44px;
+  line-height: calc(var(--line) * 2);
+  color: var(--wine);
+}
+
+.letter-paper .hl {
+  font-family: 'Caveat', cursive;
+  font-style: normal;
+  font-size: 1.45em;
+  line-height: 1;
+  color: var(--rose);
+}
+
+.letter-paper .hl--big {
+  font-size: 2.1em;
+}
+
+.letter-last {
+  text-align: center;
+}
+
+/* nota al margen sobre "tu lugar" */
+.letter-aside {
+  position: relative;
+  margin: 0 -12px var(--line);
+  padding: calc(var(--line) / 2) 24px calc(var(--line) / 2) 64px;
+  border-radius: 10px;
+  background: rgba(255, 159, 203, 0.14);
+  color: var(--ink);
+}
+
+.letter-aside strong {
+  font-family: 'Caveat', cursive;
+  font-size: 1.5em;
+  font-weight: 600;
+  color: var(--wine);
+}
+
+.letter-aside-heart {
+  position: absolute;
+  left: 16px;
+  top: 18px;
+  width: 30px;
+  height: 28px;
+  fill: none;
+  stroke: var(--rose);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* lista de promesas */
+.letter-promises {
+  margin-bottom: var(--line);
+}
+
+.letter-promises-title {
+  font-family: 'Caveat', cursive;
+  font-weight: 600;
+  font-size: 30px;
+  color: var(--wine);
+}
+
+.letter-promises ol {
+  list-style: none;
+  counter-reset: promise;
+}
+
+.letter-promises li {
+  counter-increment: promise;
+  position: relative;
+  padding-left: 34px;
+}
+
+.letter-promises li::before {
+  content: counter(promise) '.';
+  position: absolute;
+  left: 0;
+  font-family: 'Caveat', cursive;
+  font-size: 24px;
+  color: var(--rose);
+}
+
+/* ---------- letter-polaroids con cinta ---------- */
+
+.letter-polaroid {
+  position: relative;
+  width: 230px;
+  padding: 10px 10px 0;
+  background: #fff;
+  box-shadow: 0 14px 30px rgba(60, 30, 40, 0.22);
+  z-index: 1;
+}
+
+.letter-polaroid img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.letter-polaroid figcaption {
+  font-family: 'Caveat', cursive;
+  font-size: 21px;
+  line-height: 48px;
+  text-align: center;
+  color: var(--ink-soft);
+}
+
+.letter-polaroid--right {
+  float: right;
+  margin: 6px -40px 20px 28px;
+  transform: rotate(3deg);
+}
+
+.letter-polaroid--left {
+  float: left;
+  margin: 6px 28px 20px -60px;
+  transform: rotate(-3.5deg);
+}
+
+.letter-tape {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  width: 96px;
+  height: 28px;
+  transform: translateX(-50%) rotate(-4deg);
+  background: rgba(255, 236, 170, 0.72);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.letter-tape--pink {
+  background: rgba(255, 180, 210, 0.75);
+  transform: translateX(-50%) rotate(5deg);
+}
+
+/* ---------- firma, posdata y sello ---------- */
+
+.letter-signoff {
+  clear: both;
+  position: relative;
+  margin-top: var(--line);
+  text-align: right;
+  padding-right: 8px;
+}
+
+.letter-signoff-label {
+  font-family: 'Caveat', cursive;
+  font-size: 26px;
+  color: var(--ink-soft);
+}
+
+.letter-signature {
+  font-family: 'Caveat', cursive;
+  font-weight: 600;
+  font-size: 40px;
+  line-height: calc(var(--line) * 1.5);
+  color: var(--wine);
+}
+
+.letter-signature-heart {
+  display: inline-block;
+  width: 34px;
+  height: 31px;
+  margin-top: 4px;
+  fill: rgba(214, 92, 134, 0.18);
+  stroke: var(--rose);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.letter-ps {
+  margin-top: var(--line);
+  padding-top: var(--line);
+  border-top: 1px dashed rgba(108, 90, 100, 0.35);
+  color: var(--ink-soft);
+  font-size: 16px;
+}
+
+.letter-ps p + p {
+  margin-top: calc(var(--line) / 2);
+}
+
+.ps-label {
+  font-family: 'Caveat', cursive;
+  font-weight: 600;
+  font-size: 22px;
+  color: var(--wine);
+  margin-right: 4px;
+}
+
+.ps-play {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  margin-left: 4px;
+  vertical-align: middle;
+  border: 1px solid rgba(178, 58, 102, 0.35);
+  border-radius: 999px;
+  background: rgba(255, 159, 203, 0.18);
+  color: var(--wine);
+  font: 700 13px 'Manrope', sans-serif;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.ps-play svg {
+  width: 13px;
+  height: 13px;
+  fill: currentColor;
+}
+
+.ps-play:hover:not(:disabled) {
+  background: rgba(255, 159, 203, 0.32);
+}
+
+.ps-play:disabled {
+  cursor: default;
+}
+
+.letter-seal {
+  position: absolute;
+  right: 36px;
+  bottom: -30px;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fbe3ec;
+  background: radial-gradient(circle at 35% 30%, #d9578a 0%, #c2416f 55%, #9c2f57 100%);
+  box-shadow: 0 0 0 5px rgba(194, 65, 111, 0.2), 0 10px 22px rgba(80, 10, 30, 0.45);
+  transform: rotate(-8deg);
+}
+
+.letter-seal svg {
+  width: 30px;
+  height: 30px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+}
+
+/* ---------- garabatos en el margen ---------- */
+
+.doodle {
+  position: absolute;
+  fill: none;
+  stroke: var(--rose);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.doodle--star-a {
+  left: 22px;
+  top: 150px;
+  width: 30px;
+  height: 30px;
+}
+
+.doodle--flower {
+  left: 14px;
+  top: 46%;
+  width: 46px;
+  height: 62px;
+  stroke: #8aa36b;
+}
+
+.doodle--flower circle {
+  stroke: #e0a93b;
+}
+
+.doodle--star-b {
+  left: 26px;
+  bottom: 120px;
+  width: 22px;
+  height: 22px;
+  stroke: #e0a93b;
+}
+
+/* ---------- salida ---------- */
+
+.letter-cta {
+  margin-top: 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+  color: #9a8f97;
+  font-size: 13px;
+}
+
+.letter-enter {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 0 34px;
+  border: 0;
+  border-radius: 999px;
+  background: #ff9fcb;
+  color: #1a0f16;
+  font: 700 16px 'Manrope', sans-serif;
+  cursor: pointer;
+  box-shadow: 0 16px 40px rgba(255, 120, 180, 0.28);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.letter-enter svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.letter-enter:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 44px rgba(255, 120, 180, 0.4);
+}
+
+.letter-enter:focus-visible,
+.ps-play:focus-visible {
+  outline: 2px solid #ff9fcb;
+  outline-offset: 4px;
+}
+
+/* ---------- celular ---------- */
+
+@media (max-width: 640px) {
+  .letter-page {
+    --line: 32px;
+  }
+
+  /* deja libre la esquina del buscador */
+  .letter-topbar {
+    padding: max(34px, env(safe-area-inset-top, 0px)) 20px 0 76px;
+    text-align: left;
+  }
+
+  .letter-desk {
+    padding: 0 10px;
+    margin-top: 24px;
+  }
+
+  .letter-paper {
+    padding: calc(var(--line) * 1.5) 22px calc(var(--line) * 2) 46px;
+    background-image:
+      linear-gradient(90deg, transparent 32px, var(--margin-line) 32px, var(--margin-line) 33px, transparent 33px),
+      repeating-linear-gradient(180deg, transparent 0, transparent calc(var(--line) - 1px), var(--paper-line) calc(var(--line) - 1px), var(--paper-line) var(--line));
+    font-size: 16px;
+  }
+
+  .letter-greeting {
+    font-size: 38px;
+  }
+
+  .letter-polaroid,
+  .letter-polaroid--right,
+  .letter-polaroid--left {
+    float: none;
+    width: 78%;
+    margin: 8px auto calc(var(--line) + 6px);
+  }
+
+  .letter-aside {
+    margin: 0 -8px var(--line);
+    padding: calc(var(--line) / 2) 14px calc(var(--line) / 2) 50px;
+  }
+
+  .letter-aside-heart {
+    left: 12px;
+    width: 26px;
+  }
+
+  .doodle--star-a,
+  .doodle--star-b {
+    left: 8px;
+  }
+
+  .doodle--flower {
+    display: none;
+  }
+
+  .letter-enter {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .letter-paper {
+    animation: none;
+  }
+}

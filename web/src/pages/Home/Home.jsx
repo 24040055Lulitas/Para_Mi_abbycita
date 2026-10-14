@@ -164,10 +164,16 @@ export default function Home() {
             canción elegida pensando en ti. Espero que cada vez que aprietes play te
             acuerdes de que hay alguien que te quiere y te desea siempre lo mejor.
           </p>
-          <Link to="/linea-de-tiempo" className="timeline-link">
-            Ver nuestra línea del tiempo
-            <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-          </Link>
+          <div className="dedication-links">
+            <Link to="/carta" className="timeline-link">
+              Releer tu carta
+              <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            </Link>
+            <Link to="/linea-de-tiempo" className="timeline-link">
+              Ver nuestra línea del tiempo
+              <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            </Link>
+          </div>
         </div>
       </Reveal>
 

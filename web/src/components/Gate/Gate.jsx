@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { usePlayer } from '../../context/PlayerContext';
 import { resolveTrackRef } from '../../data/catalog';
 import './Gate.css';
@@ -14,6 +15,19 @@ const HEART_PATH =
 
 const SPARKLE_PATH =
   'M12 2c.6 4.8 2.2 7.4 10 10-7.8 2.6-9.4 5.2-10 10-.6-4.8-2.2-7.4-10-10 7.8-2.6 9.4-5.2 10-10z';
+
+/* palabras de inicio: aparecen una tras otra después de abrir la carta */
+const INTRO_TITLE = ['Hola,', 'Abby.'];
+const INTRO_PHRASES = [
+  'Aquí no hay prisa.',
+  'Aquí suenan las canciones que te abrazan.',
+  'Y aquí, siempre, alguien te quiere.',
+];
+/* tiempos en segundos (deben coincidir con Gate.css) */
+const INTRO_FIRST_PHRASE_AT = 2.4;
+const INTRO_PHRASE_EVERY = 2.6;
+/* cuándo aparece el botón para ir a la carta (tras la última frase) */
+const INTRO_CTA_AT = INTRO_FIRST_PHRASE_AT + INTRO_PHRASE_EVERY * (INTRO_PHRASES.length - 1) + 1.4;
 
 /* estrellitas decorativas: posición (%), tamaño (px), color, retraso */
 const SPARKLES = [
@@ -39,8 +53,11 @@ export default function Gate({ children }) {
     }
   });
   const [opened, setOpened] = useState(false);
+  const [intro, setIntro] = useState(false);
   const enterBtnRef = useRef(null);
+  const skipBtnRef = useRef(null);
   const { playTrackRef } = usePlayer();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (opened) {
@@ -51,21 +68,42 @@ export default function Gate({ children }) {
     return undefined;
   }, [opened]);
 
-  const handleEnter = () => {
-    if (ENTRANCE_TRACK) playTrackRef(ENTRANCE_TRACK);
+  const finish = useCallback(() => {
     setEntered(true);
     try {
       sessionStorage.setItem(SESSION_KEY, '1');
     } catch {
       /* almacenamiento no disponible, no pasa nada */
     }
+  }, []);
+
+  /* al entrar: suena la canción y empiezan las palabras de inicio */
+  const handleEnter = () => {
+    if (ENTRANCE_TRACK) playTrackRef(ENTRANCE_TRACK);
+    setIntro(true);
   };
+
+  /* "Hay algo que quiero decirte": cierra la entrada y abre la carta */
+  const goToLetter = () => {
+    navigate('/carta');
+    finish();
+  };
+
+  /* "Saltar": directo al inicio, sin carta */
+  const skipToHome = () => {
+    navigate('/');
+    finish();
+  };
+
+  useEffect(() => {
+    if (intro && !entered) skipBtnRef.current?.focus({ preventScroll: true });
+  }, [intro, entered]);
 
   return (
     <>
       {children}
       <div
-        className={`gate${entered ? ' is-leaving' : ''}${opened ? ' is-opened' : ''}`}
+        className={`gate${entered ? ' is-leaving' : ''}${opened ? ' is-opened' : ''}${intro ? ' is-intro' : ''}`}
         aria-hidden={entered}
         role="dialog"
         aria-modal="true"
@@ -124,7 +162,7 @@ export default function Gate({ children }) {
         </div>
 
         {/* ===== paso 2: la carta abierta ===== */}
-        <div className="gate-step gate-step--letter" aria-hidden={!opened}>
+        <div className="gate-step gate-step--letter" aria-hidden={!opened || intro}>
           <article className="gate-letter">
             <p className="gate-letter-greeting">Mi amor:</p>
             <p>
@@ -144,7 +182,7 @@ export default function Gate({ children }) {
             type="button"
             className="gate-enter"
             onClick={handleEnter}
-            tabIndex={opened ? 0 : -1}
+            tabIndex={opened && !intro ? 0 : -1}
           >
             Entrar a tu lugar
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -153,6 +191,48 @@ export default function Gate({ children }) {
           </button>
           <p className="gate-music-note">La música empieza al entrar</p>
         </div>
+
+        {/* ===== paso 3: palabras de inicio ===== */}
+        {intro && (
+          <div className="gate-step gate-step--intro" aria-live="polite">
+            <p className="gate-intro-eyebrow">bienvenida a tu lugar</p>
+            <h2 className="gate-intro-title">
+              {INTRO_TITLE.map((word, i) => (
+                <span key={word} className="gate-intro-word" style={{ animationDelay: `${0.5 + i * 0.45}s` }}>
+                  {word}
+                </span>
+              ))}
+            </h2>
+            <span className="gate-intro-divider" aria-hidden="true" />
+            <div className="gate-intro-phrases">
+              {INTRO_PHRASES.map((phrase, i) => (
+                <p
+                  key={phrase}
+                  className={`gate-intro-phrase${i === INTRO_PHRASES.length - 1 ? ' is-last' : ''}`}
+                  style={{ animationDelay: `${INTRO_FIRST_PHRASE_AT + i * INTRO_PHRASE_EVERY}s` }}
+                >
+                  {phrase}
+                </p>
+              ))}
+            </div>
+            <button
+              type="button"
+              className="gate-intro-next"
+              onClick={goToLetter}
+              style={{ animationDelay: `${INTRO_CTA_AT}s` }}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 7l8 6 8-6" />
+                <rect x="3" y="5" width="18" height="14" rx="2" />
+              </svg>
+              Hay algo que quiero decirte
+            </button>
+            <button ref={skipBtnRef} type="button" className="gate-intro-skip" onClick={skipToHome}>
+              Saltar
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l7 7-7 7M13 5l7 7-7 7" /></svg>
+            </button>
+          </div>
+        )}
       </div>
     </>
   );

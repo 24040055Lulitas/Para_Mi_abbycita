@@ -273,6 +273,191 @@
   color: #9a8f97;
 }
 
+/* ---------- paso 3: palabras de inicio ---------- */
+
+.gate.is-intro .gate-step--letter {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-24px) scale(0.97);
+  transition-delay: 0s;
+}
+
+.gate.is-intro .gate-sparkle {
+  animation-duration: 2.4s;
+}
+
+.gate-step--intro {
+  max-width: 720px;
+  animation: gateFadeIn 0.8s 0.4s ease both;
+}
+
+@keyframes gateFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.gate-intro-eyebrow {
+  font-size: 12px;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: #ff9fcb;
+  font-weight: 700;
+  animation: gateWordIn 1s 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.gate-intro-title {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 0.28em;
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(56px, 13vw, 112px);
+  line-height: 1.05;
+  color: #f9f3f6;
+}
+
+.gate-intro-word {
+  display: inline-block;
+  animation: gateWordIn 1.1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.gate-intro-word:last-child {
+  color: #ff9fcb;
+}
+
+@keyframes gateWordIn {
+  from { opacity: 0; transform: translateY(18px); filter: blur(10px); }
+  to { opacity: 1; transform: none; filter: blur(0); }
+}
+
+.gate-intro-divider {
+  display: block;
+  width: 72px;
+  height: 1px;
+  margin: 26px auto 0;
+  background: rgba(255, 159, 203, 0.6);
+  transform-origin: center;
+  animation: gateLineGrow 1s 1.6s ease both;
+}
+
+@keyframes gateLineGrow {
+  from { transform: scaleX(0); opacity: 0; }
+  to { transform: scaleX(1); opacity: 1; }
+}
+
+/* las frases comparten el mismo lugar y se relevan */
+.gate-intro-phrases {
+  display: grid;
+  margin-top: 26px;
+  min-height: 3.2em;
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: clamp(20px, 4.4vw, 28px);
+  line-height: 1.4;
+  color: #d9ced5;
+}
+
+.gate-intro-phrase {
+  grid-area: 1 / 1;
+  opacity: 0;
+  animation: gatePhrase 2.6s ease both;
+}
+
+.gate-intro-phrase.is-last {
+  animation-name: gatePhraseLast;
+  animation-duration: 1.2s;
+}
+
+@keyframes gatePhrase {
+  0% { opacity: 0; transform: translateY(10px); filter: blur(6px); }
+  22%, 78% { opacity: 1; transform: none; filter: blur(0); }
+  100% { opacity: 0; transform: translateY(-8px); filter: blur(6px); }
+}
+
+@keyframes gatePhraseLast {
+  from { opacity: 0; transform: translateY(10px); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: blur(0); }
+}
+
+.gate-intro-next {
+  margin-top: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 0 30px;
+  border: 1px solid rgba(255, 159, 203, 0.55);
+  border-radius: 999px;
+  background: rgba(255, 159, 203, 0.1);
+  color: #fbe3ec;
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 19px;
+  cursor: pointer;
+  animation: gateWordIn 1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.gate-intro-next svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: #ff9fcb;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.gate-intro-next:hover {
+  background: rgba(255, 159, 203, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(255, 120, 180, 0.22);
+}
+
+.gate-intro-next:focus-visible {
+  outline: 2px solid #ff9fcb;
+  outline-offset: 4px;
+}
+
+.gate-intro-skip {
+  position: fixed;
+  right: max(20px, env(safe-area-inset-right, 0px));
+  bottom: max(20px, env(safe-area-inset-bottom, 0px));
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #a99ea6;
+  font: 600 13px 'Manrope', sans-serif;
+  cursor: pointer;
+  animation: gateFadeIn 0.6s 1.5s ease both;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.gate-intro-skip svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.gate-intro-skip:hover,
+.gate-intro-skip:focus-visible {
+  color: #f4eef2;
+  border-color: rgba(255, 159, 203, 0.6);
+  outline: none;
+}
+
 @media (max-width: 560px) {
   .gate-enter {
     width: 100%;
@@ -289,5 +474,24 @@
   .gate-step {
     transition: opacity 0.3s ease, visibility 0.3s;
     transform: none !important;
+  }
+
+  /* sin movimiento: todas las palabras aparecen juntas y quietas */
+  .gate-intro-eyebrow,
+  .gate-intro-word,
+  .gate-intro-divider,
+  .gate-step--intro,
+  .gate-intro-next,
+  .gate-intro-skip {
+    animation: gateFadeIn 0.4s ease both !important;
+  }
+
+  .gate-intro-phrase {
+    animation: none;
+    opacity: 0;
+  }
+
+  .gate-intro-phrase.is-last {
+    opacity: 1;
   }
 }

@@ -4,6 +4,7 @@ import MiniPlayer from './components/MiniPlayer/MiniPlayer';
 import SearchOverlay from './components/SearchOverlay/SearchOverlay';
 import { PlayerProvider } from './context/PlayerContext';
 import Home from './pages/Home/Home';
+import Letter from './pages/Letter/Letter';
 import Secret from './pages/Secret/Secret';
 import Timeline from './pages/Timeline/Timeline';
 
@@ -24,6 +25,7 @@ export default function App() {
         <Gate>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/carta" element={<Letter />} />
             <Route path="/linea-de-tiempo" element={<Timeline />} />
             <Route path="/secreto" element={<Secret />} />
           </Routes>
