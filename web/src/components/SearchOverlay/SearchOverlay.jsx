@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import NowPlayingIcon from '../icons/NowPlayingIcon';
 import { usePlayer } from '../../context/PlayerContext';
 import { searchTracks } from '../../data/catalog';
@@ -9,6 +10,7 @@ export default function SearchOverlay() {
   const [query, setQuery] = useState('');
   const inputRef = useRef(null);
   const { current, playTrackRef, toggleLike, isLiked } = usePlayer();
+  const { pathname } = useLocation();
 
   const results = searchTracks(query);
 
@@ -23,14 +25,26 @@ export default function SearchOverlay() {
   useEffect(() => {
     function onKeyDown(e) {
       if (e.key === 'Escape') setIsOpen(false);
+      /* "/" abre el buscador, salvo que ya estés escribiendo en un campo */
+      const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target?.tagName || '');
+      if (e.key === '/' && !typing) {
+        e.preventDefault();
+        setIsOpen(true);
+      }
     }
+    /* el menú superior del inicio abre el buscador con este evento */
+    const onOpenRequest = () => setIsOpen(true);
     document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
+    window.addEventListener('abby:open-search', onOpenRequest);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('abby:open-search', onOpenRequest);
+    };
   }, []);
 
   return (
     <>
-      <button className="search-btn" onClick={() => setIsOpen(true)} title="Buscar canción" aria-label="Buscar canción">
+      <button className={`search-btn${pathname === '/' ? ' search-btn--home' : ''}`} onClick={() => setIsOpen(true)} title="Buscar canción" aria-label="Buscar canción">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
       </button>
 

@@ -1,17 +1,21 @@
 .gate {
+  --gate-bg: #0c0a12;
+  --gate-paper: #f7ece4;
+  --gate-ink: #3a2530;
+  --gate-wine: #b23a66;
+  --gate-seal: #c2416f;
+
   position: fixed;
   inset: 0;
   z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   overflow: hidden;
-  padding: 32px 24px;
-  background:
-    radial-gradient(circle at 50% 38%, rgba(255, 94, 168, 0.22), transparent 55%),
-    radial-gradient(circle at 18% 85%, rgba(63, 169, 255, 0.16), transparent 50%),
-    var(--color-black);
-  transition: opacity 0.7s ease, visibility 0.7s ease;
+  padding: 24px 20px;
+  background: var(--gate-bg);
+  color: #f4eef2;
+  font-family: 'Manrope', system-ui, sans-serif;
+  transition: opacity 0.8s ease, visibility 0.8s ease;
 }
 
 .gate.is-leaving {
@@ -20,128 +24,270 @@
   pointer-events: none;
 }
 
-.gate-content {
-  position: relative;
-  z-index: 1;
-  text-align: center;
-  max-width: 420px;
-}
-
-.gate-icon {
-  position: relative;
-  width: 92px;
-  height: 92px;
-  margin: 0 auto 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.gate-icon-ring {
+/* luz ambiental suave detrás de todo */
+.gate-glow {
   position: absolute;
-  inset: 0;
+  width: min(900px, 160vw);
+  aspect-ratio: 1;
+  left: 50%;
+  top: 42%;
+  transform: translate(-50%, -50%);
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  animation: gateRingPulse 2.6s ease-in-out infinite;
+  background: radial-gradient(circle, rgba(255, 120, 180, 0.17) 0%, rgba(255, 120, 180, 0) 62%);
+  pointer-events: none;
 }
 
-.gate-icon-core {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
+.gate-sparkle {
+  position: absolute;
+  opacity: 0.45;
+  pointer-events: none;
+  animation: gateTwinkle 3.6s ease-in-out infinite;
+}
+
+@keyframes gateTwinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.85); }
+  50% { opacity: 0.6; transform: scale(1); }
+}
+
+/* los dos pasos ocupan la misma celda y se cruzan */
+.gate-step {
+  grid-area: 1 / 1;
+  position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, var(--color-blue), var(--color-pink));
-  box-shadow: 0 0 36px rgba(255, 94, 168, 0.45);
-  animation: gateHeartBeat 2.6s ease-in-out infinite;
+  text-align: center;
+  width: 100%;
+  max-width: 560px;
+  transition: opacity 0.6s ease, transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0.6s;
 }
 
-.gate-icon-core svg {
-  width: 24px;
-  height: 24px;
-  fill: #fff;
+.gate-step--letter {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(40px) scale(0.96);
 }
 
-@keyframes gateRingPulse {
-  0%, 100% { transform: scale(1); opacity: 0.7; }
-  50% { transform: scale(1.12); opacity: 0.3; }
+.gate.is-opened .gate-step--envelope {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-30px) scale(0.94);
 }
 
-@keyframes gateHeartBeat {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.08); }
+.gate.is-opened .gate-step--letter {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition-delay: 0.15s;
 }
+
+/* ---------- paso 1: sobre ---------- */
 
 .gate-eyebrow {
   font-size: 12px;
-  letter-spacing: 3px;
+  letter-spacing: 4px;
   text-transform: uppercase;
-  color: var(--color-pink);
+  color: #ff9fcb;
   font-weight: 700;
 }
 
 .gate-title {
+  margin-top: 10px;
   font-family: 'Playfair Display', serif;
   font-style: italic;
   font-weight: 400;
-  font-size: clamp(32px, 7vw, 46px);
-  color: var(--text-main);
-  margin-top: 10px;
-  line-height: 1.15;
+  font-size: clamp(38px, 8vw, 56px);
+  line-height: 1.1;
+  color: #f9f3f6;
 }
 
-.gate-text {
-  margin-top: 18px;
-  color: var(--text-dim);
-  font-size: 14.5px;
-  line-height: 1.75;
-}
-
-.gate-enter {
+.gate-envelope {
   position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 32px;
-  padding: 16px 38px;
-  border: none;
-  border-radius: 999px;
+  width: min(460px, 100%);
+  aspect-ratio: 460 / 300;
+  margin-top: 36px;
+  animation: gateFloat 5s ease-in-out infinite;
+}
+
+@keyframes gateFloat {
+  0%, 100% { transform: translateY(0) rotate(-0.6deg); }
+  50% { transform: translateY(-8px) rotate(0.6deg); }
+}
+
+.gate-envelope-art {
+  width: 100%;
+  height: 100%;
+  display: block;
+  filter: drop-shadow(0 30px 50px rgba(0, 0, 0, 0.55));
+}
+
+.gate-seal {
+  position: absolute;
+  left: 50%;
+  top: 57%;
+  transform: translate(-50%, -50%);
+  width: clamp(72px, 19%, 88px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 0;
   cursor: pointer;
-  font-family: 'Playfair Display', serif;
-  font-style: italic;
-  font-size: 16px;
-  color: var(--color-black);
-  background: linear-gradient(90deg, var(--color-blue), var(--color-pink));
-  box-shadow: 0 14px 34px rgba(255, 94, 168, 0.3);
+  display: grid;
+  place-items: center;
+  color: #fbe3ec;
+  background: radial-gradient(circle at 35% 30%, #d9578a 0%, var(--gate-seal) 55%, #9c2f57 100%);
+  box-shadow: 0 0 0 6px rgba(194, 65, 111, 0.22), 0 10px 22px rgba(80, 10, 30, 0.45);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
+  animation: gateSealPulse 2.6s ease-in-out infinite;
 }
 
-.gate-enter-icon {
-  width: 15px;
-  height: 15px;
-  fill: var(--color-black);
+.gate-seal svg {
+  width: 42%;
+  height: 42%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linejoin: round;
 }
 
-.gate-enter:hover {
-  transform: scale(1.05);
-  box-shadow: 0 16px 40px rgba(255, 94, 168, 0.45);
+.gate-seal:hover {
+  transform: translate(-50%, -50%) scale(1.07);
 }
 
-.gate-enter:active {
-  transform: scale(0.96);
+.gate-seal:active {
+  transform: translate(-50%, -50%) scale(0.94);
+}
+
+.gate-seal:focus-visible {
+  outline: 2px solid #ff9fcb;
+  outline-offset: 6px;
+}
+
+@keyframes gateSealPulse {
+  0%, 100% { box-shadow: 0 0 0 6px rgba(194, 65, 111, 0.22), 0 10px 22px rgba(80, 10, 30, 0.45); }
+  50% { box-shadow: 0 0 0 12px rgba(194, 65, 111, 0.08), 0 10px 22px rgba(80, 10, 30, 0.45); }
 }
 
 .gate-hint {
-  margin-top: 16px;
-  font-size: 11.5px;
-  letter-spacing: 0.4px;
-  color: rgba(176, 176, 188, 0.6);
+  margin-top: 30px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #a99ea6;
+}
+
+.gate-hint svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------- paso 2: carta ---------- */
+
+.gate-letter {
+  width: 100%;
+  padding: clamp(28px, 6vw, 48px) clamp(24px, 7vw, 56px) clamp(24px, 5vw, 40px);
+  border-radius: 6px;
+  background: var(--gate-paper);
+  color: var(--gate-ink);
+  text-align: left;
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.55);
+  transform: rotate(-1deg);
+  font-family: 'Caveat', cursive;
+  font-size: clamp(22px, 5.4vw, 26px);
+  line-height: 1.35;
+}
+
+.gate-letter p + p {
+  margin-top: 14px;
+}
+
+.gate-letter-greeting {
+  font-size: 1.35em;
+  font-weight: 600;
+  color: var(--gate-wine);
+}
+
+.gate-letter .gate-letter-sign {
+  margin-top: 22px;
+  text-align: right;
+  font-size: 1.1em;
+  color: var(--gate-wine);
+}
+
+.gate-enter {
+  margin-top: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 0 34px;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  background: #ff9fcb;
+  color: #1a0f16;
+  font: 700 16px 'Manrope', sans-serif;
+  letter-spacing: 0.5px;
+  box-shadow: 0 16px 40px rgba(255, 120, 180, 0.28);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.gate-enter svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.25s ease;
+}
+
+.gate-enter:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 44px rgba(255, 120, 180, 0.4);
+}
+
+.gate-enter:hover svg {
+  transform: translateX(3px);
+}
+
+.gate-enter:active {
+  transform: scale(0.97);
+}
+
+.gate-enter:focus-visible {
+  outline: 2px solid #ff9fcb;
+  outline-offset: 4px;
+}
+
+.gate-music-note {
+  margin-top: 14px;
+  font-size: 13px;
+  color: #9a8f97;
+}
+
+@media (max-width: 560px) {
+  .gate-enter {
+    width: 100%;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .gate-icon-ring,
-  .gate-icon-core {
+  .gate-sparkle,
+  .gate-envelope,
+  .gate-seal {
     animation: none;
+  }
+
+  .gate-step {
+    transition: opacity 0.3s ease, visibility 0.3s;
+    transform: none !important;
   }
 }

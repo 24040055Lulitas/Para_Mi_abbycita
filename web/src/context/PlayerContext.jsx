@@ -21,6 +21,22 @@ function loadLiked() {
   }
 }
 
+const RESUME_KEY = 'abbyplayer-last-session';
+
+/* última canción y segundo en que se quedó, para "continuar donde te
+   quedaste" — se guarda en localStorage cada pocos segundos */
+function loadLastSession() {
+  try {
+    const raw = localStorage.getItem(RESUME_KEY);
+    if (!raw) return null;
+    const { key, time } = JSON.parse(raw);
+    const track = allTrackRefs().find((t) => t.key === key);
+    return track ? { track, time: Number(time) || 0 } : null;
+  } catch {
+    return null;
+  }
+}
+
 function formatTime(seconds) {
   if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
   const m = Math.floor(seconds / 60);
@@ -44,6 +60,8 @@ export function PlayerProvider({ children }) {
   const [shuffle, setShuffle] = useState(false);
   const [repeatMode, setRepeatMode] = useState('off'); // off | all | one
   const [likedFiles, setLikedFiles] = useState(loadLiked);
+  const [lastSession] = useState(loadLastSession);
+  const pendingSeekRef = useRef(null);
 
   const current = queueIndex >= 0 ? queue[queueIndex] : null;
 
@@ -211,7 +229,13 @@ export function PlayerProvider({ children }) {
     audio.volume = volume;
 
     const onTimeUpdate = () => setCurrentTime(audio.currentTime);
-    const onLoadedMetadata = () => setDuration(audio.duration || 0);
+    const onLoadedMetadata = () => {
+      setDuration(audio.duration || 0);
+      if (pendingSeekRef.current != null) {
+        audio.currentTime = Math.min(pendingSeekRef.current, Math.max(0, (audio.duration || 0) - 1));
+        pendingSeekRef.current = null;
+      }
+    };
     const onEnded = () => {
       if (repeatMode === 'one') {
         audio.currentTime = 0;
@@ -246,6 +270,26 @@ export function PlayerProvider({ children }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [repeatMode, next, prev, togglePlay]);
 
+  /* guarda la sesión cada ~5 s de reproducción */
+  const savedSecond = Math.floor(currentTime / 5);
+  useEffect(() => {
+    if (!current) return;
+    try {
+      localStorage.setItem(
+        RESUME_KEY,
+        JSON.stringify({ key: current.key, time: Math.floor(audioRef.current?.currentTime || 0) })
+      );
+    } catch {
+      /* almacenamiento no disponible */
+    }
+  }, [current, savedSecond]);
+
+  const resume = useCallback(() => {
+    if (!lastSession) return;
+    pendingSeekRef.current = lastSession.time;
+    playTrackRef(lastSession.track);
+  }, [lastSession, playTrackRef]);
+
   const likedTrackRefs = useMemo(
     () => allTrackRefs().filter((ref) => likedFiles.has(ref.file)),
     [likedFiles]
@@ -265,6 +309,8 @@ export function PlayerProvider({ children }) {
       repeatMode,
       likedFiles,
       likedTrackRefs,
+      lastSession,
+      resume,
       playTrackRef,
       togglePlay,
       next,
@@ -293,6 +339,8 @@ export function PlayerProvider({ children }) {
       repeatMode,
       likedFiles,
       likedTrackRefs,
+      lastSession,
+      resume,
       playTrackRef,
       togglePlay,
       next,

@@ -11,6 +11,12 @@
   --text-main: #f5f5f7;
   --text-dim: #b0b0bc;
   --radius: 18px;
+
+  /* acento único: rosa para acciones, verde solo para "sonando ahora" */
+  --accent: #ff8cc2;
+  --accent-ink: #1a0f16;
+  --playing: var(--color-green);
+  --card: #15151b;
 }
 
 * {
@@ -31,7 +37,7 @@ body,
 }
 
 body {
-  font-family: 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Manrope', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
   color: var(--text-main);
   background: var(--color-black);
   min-height: 100vh;
@@ -50,7 +56,7 @@ a {
 h1,
 h2,
 h3 {
-  font-family: 'Anton', 'Inter', sans-serif;
+  font-family: 'Anton', 'Manrope', sans-serif;
   font-weight: 400;
 }
 
@@ -81,4 +87,38 @@ h3 {
     transform: none;
     transition: none;
   }
+}
+
+/* ---------- barras de ecualizador ("sonando ahora") ---------- */
+
+.eq-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 12px;
+}
+
+.eq-bars span {
+  width: 3px;
+  height: 100%;
+  border-radius: 1px;
+  background: var(--playing);
+  transform-origin: bottom;
+  animation: eqBounce 0.9s ease-in-out infinite;
+}
+
+.eq-bars span:nth-child(2) { animation-delay: -0.3s; }
+.eq-bars span:nth-child(3) { animation-delay: -0.6s; }
+
+.eq-bars.is-paused span {
+  animation-play-state: paused;
+}
+
+@keyframes eqBounce {
+  0%, 100% { transform: scaleY(0.35); }
+  50% { transform: scaleY(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eq-bars span { animation: none; transform: scaleY(0.7); }
 }

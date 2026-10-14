@@ -7,13 +7,13 @@
   height: 46px;
   border-radius: 50%;
   border: 1px solid var(--border);
-  background: linear-gradient(135deg, var(--color-blue), var(--color-pink));
-  color: var(--color-black);
+  background: var(--accent);
+  color: var(--accent-ink);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 6px 20px rgba(255, 94, 168, 0.3);
+  box-shadow: 0 6px 20px rgba(255, 120, 180, 0.28);
   transition: transform 0.2s ease;
 }
 
@@ -117,4 +117,11 @@
   color: var(--text-dim);
   font-size: 14px;
   text-align: center;
+}
+
+/* en el inicio (escritorio) el buscador vive en el menú superior */
+@media (min-width: 760px) {
+  .search-btn--home {
+    display: none;
+  }
 }

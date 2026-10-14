@@ -3,13 +3,14 @@ import { Link } from 'react-router-dom';
 import AuraParticles from '../../components/AuraParticles';
 import ScrollMeter from '../../components/ScrollMeter';
 import Reveal from '../../components/Reveal';
-import NowPlayingIcon from '../../components/icons/NowPlayingIcon';
 import TrackPanel from '../../components/TrackPanel/TrackPanel';
 import { usePlayer } from '../../context/PlayerContext';
 import {
   ALBUM_KEYS,
   ALBUMS,
   albumTrackRefs,
+  favoritesTrackRefs,
+  SINGLES,
   singlesTrackRefs,
 } from '../../data/catalog';
 import {
@@ -21,10 +22,57 @@ import {
 } from '../../data/assets';
 import './Home.css';
 
+const HEART_PATH =
+  'M12 21s-6.7-4.35-9.33-8.2C1 10.63 1.4 7.4 4 5.8c2.1-1.3 4.6-.7 6 1.1L12 9l2-2.1c1.4-1.8 3.9-2.4 6-1.1 2.6 1.6 3 4.83 1.33 6.99C18.7 16.65 12 21 12 21z';
+
+/* con HashRouter un href="#seccion" cambiaría de ruta, así que el
+   desplazamiento a cada sección se hace con scrollIntoView */
+function scrollToId(id) {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+const NAV_ITEMS = [
+  { id: 'inicio', label: 'Inicio' },
+  { id: 'para-ti', label: 'Para ti' },
+  { id: 'albums', label: 'Álbumes' },
+  { id: 'tu-lugar', label: 'Tu lugar' },
+  { id: 'favoritas', label: 'Favoritas' },
+];
+
+function EqBars({ paused }) {
+  return (
+    <span className={`eq-bars${paused ? ' is-paused' : ''}`} aria-hidden="true">
+      <span />
+      <span />
+      <span />
+    </span>
+  );
+}
+
+function shuffled(list) {
+  const copy = [...list];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
 export default function Home() {
   const [openAlbumIndex, setOpenAlbumIndex] = useState(null);
   const [singlesOpen, setSinglesOpen] = useState(false);
-  const { likedTrackRefs, toggleLike, playTrackRef, current, isPlaying } = usePlayer();
+  const { likedTrackRefs, toggleLike, playTrackRef, current, isPlaying, lastSession, resume, formatTime } =
+    usePlayer();
+
+  /* "Reproducir sus favoritas": las que tenga marcadas, o las de fábrica */
+  const favoritesQueue = likedTrackRefs.length ? likedTrackRefs : favoritesTrackRefs();
+  const playFavorites = () => favoritesQueue.length && playTrackRef(favoritesQueue[0], favoritesQueue);
+  const shuffleFavorites = () => {
+    const list = shuffled(favoritesQueue);
+    if (list.length) playTrackRef(list[0], list);
+  };
+  const playingAlbumKey = current?.key?.startsWith('album:') ? current.key.split(':')[1] : null;
+  const singles = singlesTrackRefs();
 
   const openAlbum = useCallback((key) => {
     setOpenAlbumIndex(ALBUM_KEYS.indexOf(key));
@@ -45,24 +93,57 @@ export default function Home() {
       <AuraParticles />
       <ScrollMeter />
 
+      {/* ===== menú superior (escritorio) ===== */}
+      <nav className="home-nav" aria-label="Secciones">
+        {NAV_ITEMS.map((item) => (
+          <button key={item.id} type="button" className="home-nav-link" onClick={() => scrollToId(item.id)}>
+            {item.label}
+          </button>
+        ))}
+        <button
+          type="button"
+          className="home-nav-search"
+          onClick={() => window.dispatchEvent(new Event('abby:open-search'))}
+          aria-label="Buscar canción"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+          <span>Buscar</span>
+          <kbd>/</kbd>
+        </button>
+      </nav>
+
       {/* ===== hero ===== */}
-      <section className="hero">
+      <section className="hero" id="inicio">
         <div className="hero-overlay" />
         <div className="hero-content">
-          <p className="section-eyebrow">una playlist especial para</p>
+          <p className="hero-eyebrow">una playlist especial para</p>
           <h1 className="hero-name">ABBY</h1>
-          <p className="hero-of">de la música de</p>
-          <p className="hero-artist">Billie Eilish</p>
+          <p className="hero-artist">de la música de Billie Eilish</p>
           <p className="hero-quote">&ldquo;Suave como sus canciones.&rdquo;</p>
-          <a href="#albums" className="hero-cta">
-            Explorar álbumes
-            <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7" /></svg>
-          </a>
+          <div className="hero-actions">
+            <button type="button" className="btn-primary" onClick={playFavorites}>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
+              Reproducir sus favoritas
+            </button>
+            <button type="button" className="btn-ghost" onClick={() => scrollToId('albums')}>
+              Explorar álbumes
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7" /></svg>
+            </button>
+          </div>
+          {lastSession && !current && (
+            <button type="button" className="resume-pill" onClick={resume}>
+              <img src={lastSession.track.cover} alt="" />
+              <span>
+                Continuar donde te quedaste · <strong>{lastSession.track.title}</strong> ·{' '}
+                {formatTime(lastSession.time)}
+              </span>
+            </button>
+          )}
         </div>
       </section>
 
       {/* ===== dedicatoria ===== */}
-      <Reveal as="section" className="dedication">
+      <Reveal as="section" className="dedication" id="para-ti">
         <figure className="dedication-photo">
           <img src={DEDICATION_PHOTO} alt="Foto para Abby" loading="lazy" />
           <figcaption>Me cagué de risa cuando vi esta foto JAJAJA nunca la había visto.</figcaption>
@@ -98,37 +179,66 @@ export default function Home() {
           <img className="deco-icon" src={ICONS.sun} alt="" />
         </h2>
         <div className="album-gallery">
-          {ALBUM_KEYS.map((key, i) => (
-            <button
-              key={key}
-              className="album-card"
-              style={{ '--accent-i': i % 4 }}
-              onClick={() => openAlbum(key)}
-            >
-              <span className="album-card-cover">
-                <img src={ALBUMS[key].cover} alt="" loading="lazy" />
-              </span>
-              <span className="album-card-name">{ALBUMS[key].name}</span>
-              <span className="album-card-year">{ALBUMS[key].year}</span>
-            </button>
-          ))}
+          {ALBUM_KEYS.map((key) => {
+            const isNow = playingAlbumKey === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                className={`album-card${isNow ? ' is-now' : ''}`}
+                onClick={() => openAlbum(key)}
+              >
+                <span className="album-card-cover">
+                  <img src={ALBUMS[key].cover} alt="" loading="lazy" />
+                  {isNow && (
+                    <span className="now-badge">
+                      <EqBars paused={!isPlaying} />
+                      {isPlaying ? 'Sonando ahora' : 'En pausa'}
+                    </span>
+                  )}
+                  <span className="album-card-play" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                  </span>
+                </span>
+                <span className="album-card-name">{ALBUMS[key].name}</span>
+                <span className="album-card-year">
+                  {ALBUMS[key].year} · {ALBUMS[key].tracks.length} canciones
+                </span>
+              </button>
+            );
+          })}
         </div>
       </Reveal>
 
       {/* ===== sencillos ===== */}
       <Reveal as="section" className="singles">
-        <p className="section-eyebrow">fuera del álbum</p>
-        <h2 className="section-title">
-          Sencillos
-          <img className="deco-icon" src={ICONS.flowerRed} alt="" />
-        </h2>
-        <button className="singles-orb" onClick={() => setSinglesOpen(true)} aria-label="Ver sencillos">
-          <span className="singles-orb-ring" />
-          <span className="singles-orb-photo">
-            <img src={SINGLES_ORB_PHOTO} alt="" loading="lazy" />
-          </span>
-        </button>
-        <p className="singles-orb-label">Sencillos</p>
+        <div className="singles-strip">
+          <img className="singles-strip-photo" src={SINGLES_ORB_PHOTO} alt="" loading="lazy" />
+          <div className="singles-strip-text">
+            <p className="section-eyebrow">fuera del álbum</p>
+            <h2 className="singles-strip-title">
+              Sencillos
+              <img className="deco-icon" src={ICONS.flowerRed} alt="" />
+            </h2>
+          </div>
+          <div className="singles-strip-covers">
+            {singles.map((t) => (
+              <button
+                key={t.key}
+                type="button"
+                className={`singles-strip-cover${current?.key === t.key ? ' is-now' : ''}`}
+                onClick={() => playTrackRef(t, singles)}
+                aria-label={`Reproducir ${t.title}`}
+                title={t.title}
+              >
+                <img src={t.cover} alt="" loading="lazy" />
+              </button>
+            ))}
+          </div>
+          <button type="button" className="btn-outline" onClick={() => setSinglesOpen(true)}>
+            Ver {Object.keys(SINGLES).length === 1 ? 'el sencillo' : `los ${Object.keys(SINGLES).length}`}
+          </button>
+        </div>
       </Reveal>
 
       {/* ===== lo que significa para ti ===== */}
@@ -142,17 +252,32 @@ export default function Home() {
       </Reveal>
 
       {/* ===== favoritas ===== */}
-      <Reveal as="section" className="favorites">
-        <p className="section-eyebrow">Tus favoritas</p>
-        <h2 className="section-title">
-          Para Abby
-          <img className="deco-icon" src={ICONS.tileWave} alt="" />
-        </h2>
+      <Reveal as="section" className="favorites" id="favoritas">
+        <div className="favorites-head">
+          <div>
+            <p className="section-eyebrow">Tus favoritas</p>
+            <h2 className="section-title">
+              Para Abby
+              <img className="deco-icon" src={ICONS.tileWave} alt="" />
+            </h2>
+          </div>
+          {likedTrackRefs.length > 0 && (
+            <div className="favorites-actions">
+              <button type="button" className="icon-circle" onClick={shuffleFavorites} aria-label="Reproducir en aleatorio" title="Aleatorio">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3l4 4-4 4M3 7h6l2 3M3 17h6l8-11M21 17h-6l-2.5-3.5" /></svg>
+              </button>
+              <button type="button" className="btn-primary btn-primary--sm" onClick={playFavorites}>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
+                Reproducir todo
+              </button>
+            </div>
+          )}
+        </div>
         {likedTrackRefs.length === 0 ? (
           <p className="favorites-empty">Dale al corazón en cualquier canción para que aparezca aquí.</p>
         ) : (
           <ol className="favorites-list">
-            {likedTrackRefs.map((track) => {
+            {likedTrackRefs.map((track, i) => {
               const playing = current?.key === track.key;
               return (
                 <li
@@ -160,6 +285,9 @@ export default function Home() {
                   className={`favorite-item${playing ? ' playing' : ''}`}
                   onClick={() => playTrackRef(track, likedTrackRefs)}
                 >
+                  <span className="favorite-num">
+                    {playing ? <EqBars paused={!isPlaying} /> : i + 1}
+                  </span>
                   <span className="favorite-cover">
                     <img src={track.cover} alt="" loading="lazy" />
                   </span>
@@ -167,7 +295,7 @@ export default function Home() {
                     <span className="favorite-title">{track.title}</span>
                     <span className="favorite-subtitle">{track.subtitle}</span>
                   </span>
-                  <span className="favorite-index">{playing && isPlaying ? <NowPlayingIcon /> : ''}</span>
+                  <span className="favorite-dur">{formatTime(track.dur)}</span>
                   <button
                     className="like-btn liked"
                     onClick={(e) => {
@@ -176,7 +304,7 @@ export default function Home() {
                     }}
                     aria-label="Quitar de favoritas"
                   >
-                    <svg viewBox="0 0 24 24"><path d="M12 21s-6.7-4.35-9.33-8.2C1 10.63 1.4 7.4 4 5.8c2.1-1.3 4.6-.7 6 1.1L12 9l2-2.1c1.4-1.8 3.9-2.4 6-1.1 2.6 1.6 3 4.83 1.33 6.99C18.7 16.65 12 21 12 21z" /></svg>
+                    <svg viewBox="0 0 24 24"><path d={HEART_PATH} /></svg>
                   </button>
                 </li>
               );
@@ -231,7 +359,7 @@ function MeaningSection() {
   }, []);
 
   return (
-    <Reveal as="section" className="meaning">
+    <Reveal as="section" className="meaning" id="tu-lugar">
       {MEANING_BACKGROUNDS.map((src, i) => (
         <div
           key={src}
