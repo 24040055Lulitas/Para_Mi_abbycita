@@ -1,7 +1,10 @@
 import { HashRouter, Route, Routes } from 'react-router-dom';
+import Gate from './components/Gate/Gate';
 import MiniPlayer from './components/MiniPlayer/MiniPlayer';
+import SearchOverlay from './components/SearchOverlay/SearchOverlay';
 import { PlayerProvider } from './context/PlayerContext';
 import Home from './pages/Home/Home';
+import Secret from './pages/Secret/Secret';
 import Timeline from './pages/Timeline/Timeline';
 
 /* HashRouter (en vez de BrowserRouter) porque GitHub Pages sirve
@@ -18,11 +21,15 @@ export default function App() {
   return (
     <PlayerProvider>
       <HashRouter>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/linea-de-tiempo" element={<Timeline />} />
-        </Routes>
-        <MiniPlayer />
+        <Gate>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/linea-de-tiempo" element={<Timeline />} />
+            <Route path="/secreto" element={<Secret />} />
+          </Routes>
+          <SearchOverlay />
+          <MiniPlayer />
+        </Gate>
       </HashRouter>
     </PlayerProvider>
   );

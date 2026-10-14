@@ -22,4 +22,13 @@ export const ICONS = {
   tileSakura: `${ASSET_BASE}/images/icons/tile-sakura.png`,
   tileWave: `${ASSET_BASE}/images/icons/tile-wave.png`,
   tileHaori: `${ASSET_BASE}/images/icons/tile-haori.png`,
+  tileSunrise: `${ASSET_BASE}/images/icons/tile-sunrise.png`,
 };
+
+/* galería secreta de Tanjiro */
+export const TANJIRO_IMAGES = Array.from(
+  { length: 9 },
+  (_, i) => `${ASSET_BASE}/images/secret-tanjiro/tanj${i + 1}.png`
+);
+
+export const AMBIENT_TRACK = `${ASSET_BASE}/music/secreto/kamado-tanjiro-no-uta.mp3`;

@@ -170,6 +170,40 @@ export function PlayerProvider({ children }) {
     []
   );
 
+  /* "a continuación": agrega una canción justo después de la que está
+     sonando. Si no hay nada sonando, la pone a reproducir de una vez. */
+  const addToQueue = useCallback(
+    (track) => {
+      if (queueIndex === -1) {
+        playAt([track], 0);
+        return;
+      }
+      setQueue((q) => {
+        const next2 = [...q];
+        next2.splice(queueIndex + 1, 0, track);
+        return next2;
+      });
+    },
+    [queueIndex, playAt]
+  );
+
+  const removeFromQueue = useCallback(
+    (index) => {
+      setQueue((q) => q.filter((_, i) => i !== index));
+    },
+    []
+  );
+
+  /* deja solo la canción actual, tira todo lo que seguía */
+  const clearQueue = useCallback(() => {
+    setQueue((q) => (queueIndex >= 0 ? q.slice(0, queueIndex + 1) : q));
+  }, [queueIndex]);
+
+  const upcoming = useMemo(
+    () => (queueIndex >= 0 ? queue.slice(queueIndex + 1) : []),
+    [queue, queueIndex]
+  );
+
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return undefined;
@@ -222,6 +256,7 @@ export function PlayerProvider({ children }) {
       current,
       queue,
       queueIndex,
+      upcoming,
       isPlaying,
       currentTime,
       duration,
@@ -240,12 +275,16 @@ export function PlayerProvider({ children }) {
       cycleRepeat,
       toggleLike,
       isLiked,
+      addToQueue,
+      removeFromQueue,
+      clearQueue,
       formatTime,
     }),
     [
       current,
       queue,
       queueIndex,
+      upcoming,
       isPlaying,
       currentTime,
       duration,
@@ -264,6 +303,9 @@ export function PlayerProvider({ children }) {
       cycleRepeat,
       toggleLike,
       isLiked,
+      addToQueue,
+      removeFromQueue,
+      clearQueue,
     ]
   );
 

@@ -16,7 +16,7 @@ export default function TrackPanel({
   showNav = false,
   emptyMessage,
 }) {
-  const { current, isPlaying, playTrackRef, toggleLike, isLiked } = usePlayer();
+  const { current, isPlaying, playTrackRef, toggleLike, isLiked, addToQueue } = usePlayer();
 
   return (
     <div className={`panel-backdrop${isOpen ? ' is-open' : ''}`} onClick={onClose}>
@@ -64,6 +64,17 @@ export default function TrackPanel({
                   <span className="track-dur">
                     {Math.floor(track.dur / 60)}:{String(track.dur % 60).padStart(2, '0')}
                   </span>
+                  <button
+                    className="like-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      addToQueue(track);
+                    }}
+                    title="Agregar a la cola"
+                    aria-label="Agregar a la cola"
+                  >
+                    <svg viewBox="0 0 24 24"><path d="M3 6h11M3 12h11M3 18h6M17 13v7M13.5 16.5h7" /></svg>
+                  </button>
                   <button
                     className={`like-btn${isLiked(track.file) ? ' liked' : ''}`}
                     onClick={(e) => {

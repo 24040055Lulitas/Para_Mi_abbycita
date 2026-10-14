@@ -162,3 +162,20 @@ export function allTrackRefs() {
 }
 
 export const ALBUM_KEYS = Object.keys(ALBUMS);
+
+/* búsqueda simple por substring, sin distinguir mayúsculas/acentos,
+   sobre título y álbum/subtítulo de cada canción */
+function normalize(str) {
+  return str
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '');
+}
+
+export function searchTracks(query) {
+  const q = normalize(query.trim());
+  if (!q) return [];
+  return allTrackRefs().filter(
+    (track) => normalize(track.title).includes(q) || normalize(track.subtitle).includes(q)
+  );
+}

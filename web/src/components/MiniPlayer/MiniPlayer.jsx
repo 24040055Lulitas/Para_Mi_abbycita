@@ -1,7 +1,10 @@
+import { useState } from 'react';
+import QueuePanel from '../QueuePanel/QueuePanel';
 import { usePlayer } from '../../context/PlayerContext';
 import './MiniPlayer.css';
 
 export default function MiniPlayer() {
+  const [queueOpen, setQueueOpen] = useState(false);
   const {
     current,
     isPlaying,
@@ -10,6 +13,7 @@ export default function MiniPlayer() {
     volume,
     shuffle,
     repeatMode,
+    upcoming,
     togglePlay,
     next,
     prev,
@@ -63,6 +67,14 @@ export default function MiniPlayer() {
           >
             <svg viewBox="0 0 24 24"><path d="M17 1l4 4-4 4M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 01-4 4H3" /></svg>
           </button>
+          <button
+            className={`ctrl-btn${upcoming.length ? ' is-active' : ''}`}
+            onClick={() => setQueueOpen(true)}
+            title="Lista de reproducción"
+            aria-label="Lista de reproducción"
+          >
+            <svg viewBox="0 0 24 24"><path d="M3 6h11M3 12h11M3 18h6M17 13v7M13.5 16.5h7" /></svg>
+          </button>
         </div>
         <div className="mini-progress">
           <span className="time">{formatTime(currentTime)}</span>
@@ -93,6 +105,8 @@ export default function MiniPlayer() {
           aria-label="Volumen"
         />
       </div>
+
+      <QueuePanel isOpen={queueOpen} onClose={() => setQueueOpen(false)} />
     </footer>
   );
 }

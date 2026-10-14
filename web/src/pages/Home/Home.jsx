@@ -16,7 +16,6 @@ import {
   DEDICATION_PHOTO,
   ICONS,
   MEANING_BACKGROUNDS,
-  SECRET_PAGE_URL,
   SINGLES_ORB_PHOTO,
 } from '../../data/assets';
 import './Home.css';
@@ -136,9 +135,9 @@ export default function Home() {
 
       {/* ===== secreto ===== */}
       <Reveal as="section" className="secret">
-        <a className="secret-btn" href={SECRET_PAGE_URL} target="_blank" rel="noreferrer" aria-label="Abrir secreto">
+        <Link className="secret-btn" to="/secreto" aria-label="Abrir secreto">
           <span className="secret-btn-text">secreT</span>
-        </a>
+        </Link>
       </Reveal>
 
       {/* ===== favoritas ===== */}
