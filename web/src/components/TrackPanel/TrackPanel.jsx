@@ -1,3 +1,4 @@
+import NowPlayingIcon from '../icons/NowPlayingIcon';
 import { usePlayer } from '../../context/PlayerContext';
 import './TrackPanel.css';
 
@@ -59,7 +60,7 @@ export default function TrackPanel({
                   className={`track-item${playing ? ' playing' : ''}`}
                   onClick={() => playTrackRef(track, tracks)}
                 >
-                  <span className="track-index">{playing && isPlaying ? '♪' : i + 1}</span>
+                  <span className="track-index">{playing && isPlaying ? <NowPlayingIcon /> : i + 1}</span>
                   <span className="track-name">{track.title}</span>
                   <span className="track-dur">
                     {Math.floor(track.dur / 60)}:{String(track.dur % 60).padStart(2, '0')}

@@ -709,10 +709,10 @@
 }
 
 .favorite-index {
-  font-size: 13px;
-  color: var(--color-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 16px;
-  text-align: center;
   flex-shrink: 0;
 }
 

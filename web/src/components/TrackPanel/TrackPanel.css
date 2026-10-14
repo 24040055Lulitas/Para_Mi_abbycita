@@ -167,8 +167,10 @@
 }
 
 .track-index {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 20px;
-  text-align: center;
   font-size: 12.5px;
   color: var(--text-dim);
   flex-shrink: 0;
@@ -176,6 +178,33 @@
 
 .track-item.playing .track-index {
   color: var(--color-pink);
+}
+
+.now-playing-icon {
+  width: 14px;
+  height: 14px;
+  fill: var(--color-pink);
+  overflow: visible;
+}
+
+.now-playing-icon rect {
+  transform-origin: center bottom;
+  animation: nowPlayingBar 0.9s ease-in-out infinite;
+}
+
+.now-playing-icon rect:nth-child(1) { animation-delay: -0.3s; }
+.now-playing-icon rect:nth-child(2) { animation-delay: -0.6s; }
+.now-playing-icon rect:nth-child(3) { animation-delay: 0s; }
+
+@keyframes nowPlayingBar {
+  0%, 100% { transform: scaleY(0.4); }
+  50% { transform: scaleY(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .now-playing-icon rect {
+    animation: none;
+  }
 }
 
 .track-name {

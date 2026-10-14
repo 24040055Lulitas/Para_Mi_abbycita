@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import NowPlayingIcon from '../icons/NowPlayingIcon';
 import { usePlayer } from '../../context/PlayerContext';
 import { searchTracks } from '../../data/catalog';
 import './SearchOverlay.css';
@@ -65,7 +66,7 @@ export default function SearchOverlay() {
                       setIsOpen(false);
                     }}
                   >
-                    <span className="track-index">{playing ? '♪' : ''}</span>
+                    <span className="track-index">{playing ? <NowPlayingIcon /> : ''}</span>
                     <span className="track-name">{track.title}</span>
                     <span className="track-dur">{track.subtitle}</span>
                     <button

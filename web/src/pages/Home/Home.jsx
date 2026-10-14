@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import AuraParticles from '../../components/AuraParticles';
 import ScrollMeter from '../../components/ScrollMeter';
 import Reveal from '../../components/Reveal';
+import NowPlayingIcon from '../../components/icons/NowPlayingIcon';
 import TrackPanel from '../../components/TrackPanel/TrackPanel';
 import { usePlayer } from '../../context/PlayerContext';
 import {
@@ -166,7 +167,7 @@ export default function Home() {
                     <span className="favorite-title">{track.title}</span>
                     <span className="favorite-subtitle">{track.subtitle}</span>
                   </span>
-                  <span className="favorite-index">{playing && isPlaying ? '♪' : ''}</span>
+                  <span className="favorite-index">{playing && isPlaying ? <NowPlayingIcon /> : ''}</span>
                   <button
                     className="like-btn liked"
                     onClick={(e) => {
