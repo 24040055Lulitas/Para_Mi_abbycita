@@ -196,13 +196,16 @@ export default function Letter() {
         </article>
 
         <div className="letter-cta">
-          <button type="button" className="letter-enter" onClick={() => navigate('/')}>
-            Ahora sí, entra a tu lugar
+          <button type="button" className="letter-enter" onClick={() => navigate('/nosotros')}>
+            Mira lo que somos juntos
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M5 12h14M13 6l6 6-6 6" />
             </svg>
           </button>
           <p>Esta carta se queda guardada aquí, por si algún día la necesitas otra vez.</p>
+          <button type="button" className="letter-skip" onClick={() => navigate('/')}>
+            ir directo a tu lugar
+          </button>
         </div>
       </main>
     </div>

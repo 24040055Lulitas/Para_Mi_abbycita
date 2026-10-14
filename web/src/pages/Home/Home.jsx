@@ -169,6 +169,10 @@ export default function Home() {
               Releer tu carta
               <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
             </Link>
+            <Link to="/nosotros" className="timeline-link">
+              Nosotros
+              <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            </Link>
             <Link to="/linea-de-tiempo" className="timeline-link">
               Ver nuestra línea del tiempo
               <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" /></svg>

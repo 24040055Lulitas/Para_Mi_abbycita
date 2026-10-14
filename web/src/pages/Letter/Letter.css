@@ -436,6 +436,22 @@
   outline-offset: 4px;
 }
 
+.letter-skip {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  background: none;
+  color: #9a8f97;
+  font: 600 13px 'Manrope', sans-serif;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+
+.letter-skip:hover {
+  color: #f4eef2;
+}
+
 /* ---------- celular ---------- */
 
 @media (max-width: 640px) {
