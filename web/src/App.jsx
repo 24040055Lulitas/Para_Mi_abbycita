@@ -6,6 +6,7 @@ import { PlayerProvider } from './context/PlayerContext';
 import Home from './pages/Home/Home';
 import Letter from './pages/Letter/Letter';
 import Nosotros from './pages/Nosotros/Nosotros';
+import Quiz from './pages/Quiz/Quiz';
 import Secret from './pages/Secret/Secret';
 import Timeline from './pages/Timeline/Timeline';
 
@@ -28,6 +29,7 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/carta" element={<Letter />} />
             <Route path="/nosotros" element={<Nosotros />} />
+            <Route path="/quiz" element={<Quiz />} />
             <Route path="/linea-de-tiempo" element={<Timeline />} />
             <Route path="/secreto" element={<Secret />} />
           </Routes>

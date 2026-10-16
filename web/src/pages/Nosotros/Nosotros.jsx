@@ -236,14 +236,17 @@ export default function Nosotros() {
       {/* ===== salida ===== */}
       <div className="nos-cta">
         <p className="nos-cta-whisper">Y esto apenas es el principio de todo lo que quiero guardar contigo.</p>
-        <button type="button" className="nos-enter" onClick={() => navigate('/')}>
-          Ahora sí, entra a tu lugar
+        <button type="button" className="nos-enter" onClick={() => navigate('/quiz')}>
+          ¿Cuánto te acuerdas de nosotros?
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M5 12h14M13 6l6 6-6 6" />
           </svg>
         </button>
         <button type="button" className="nos-back" onClick={() => navigate('/carta')}>
           volver a la carta
+        </button>
+        <button type="button" className="nos-back" onClick={() => navigate('/')}>
+          ir directo a tu lugar
         </button>
       </div>
 
