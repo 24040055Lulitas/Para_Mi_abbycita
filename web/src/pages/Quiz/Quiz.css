@@ -23,9 +23,23 @@
 
 /* ---------- fondo: imagen + luz ---------- */
 
-.aero-sky {
+.aero-world {
   position: fixed;
   inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* paralaje: cada capa se mueve según su profundidad */
+.aero-layer {
+  position: absolute;
+  translate: calc(var(--px, 0) * var(--depth, 10) * -1px) calc(var(--py, 0) * var(--depth, 10) * -1px);
+  transition: translate 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.aero-sky {
+  inset: -3%;
   /* la imagen se pone en línea desde Quiz.jsx */
   background-color: #2a8fe0;
   background-position: center;
@@ -41,7 +55,7 @@
 }
 
 .aero-glare {
-  position: fixed;
+  position: absolute;
   inset: 0;
   pointer-events: none;
   background:
@@ -52,7 +66,7 @@
 
 /* burbujitas que suben */
 .aero-ambient {
-  position: fixed;
+  position: absolute;
   inset: 0;
   pointer-events: none;
   overflow: hidden;
@@ -76,45 +90,319 @@
   100% { transform: translate(-10px, -115vh); opacity: 0; }
 }
 
-/* ---------- botón de música de ambiente ---------- */
-.aero-bg-mute {
+/* rayos de sol que se mecen desde la esquina */
+.aero-rays {
+  inset: -60%;
+  background: repeating-conic-gradient(from 0deg at 50% 50%, rgba(255, 255, 255, 0.16) 0deg 3deg, transparent 3deg 13deg);
+  transform-origin: 50% 50%;
+  left: -95%;
+  top: -95%;
+  -webkit-mask: radial-gradient(circle at 50% 50%, #000 0%, rgba(0, 0, 0, 0.5) 22%, transparent 42%);
+  mask: radial-gradient(circle at 50% 50%, #000 0%, rgba(0, 0, 0, 0.5) 22%, transparent 42%);
+  mix-blend-mode: screen;
+  animation: aeroRays 26s ease-in-out infinite alternate, aeroRaysPulse 7s ease-in-out infinite;
+}
+
+@keyframes aeroRays {
+  from { transform: rotate(-6deg); }
+  to { transform: rotate(8deg); }
+}
+
+@keyframes aeroRaysPulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 0.95; }
+}
+
+/* nubes suaves que cruzan el cielo */
+.aero-clouds {
+  inset: 0;
+}
+
+.aero-clouds span {
+  position: absolute;
+  left: -30%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 60%, #fff 0%, rgba(255, 255, 255, 0.7) 40%, transparent 70%);
+  filter: blur(14px);
+  animation: aeroCloud linear infinite;
+}
+
+@keyframes aeroCloud {
+  from { transform: translateX(0); }
+  to { transform: translateX(165vw); }
+}
+
+/* reflejos de luz bajo el agua */
+.aero-caustics {
+  left: -5%;
+  right: -5%;
+  top: 50%;
+  bottom: -5%;
+  background-image:
+    radial-gradient(ellipse 38px 16px at 50% 50%, rgba(255, 255, 255, 0.55), transparent 70%),
+    radial-gradient(ellipse 60px 22px at 50% 50%, rgba(200, 245, 255, 0.4), transparent 70%),
+    radial-gradient(ellipse 26px 12px at 50% 50%, rgba(255, 255, 255, 0.45), transparent 70%);
+  background-size: 150px 70px, 230px 100px, 110px 60px;
+  mix-blend-mode: overlay;
+  opacity: 0.7;
+  -webkit-mask: linear-gradient(180deg, transparent 0%, #000 18%, #000 60%, transparent 100%);
+  mask: linear-gradient(180deg, transparent 0%, #000 18%, #000 60%, transparent 100%);
+  animation: aeroCaustics 14s linear infinite;
+}
+
+@keyframes aeroCaustics {
+  from { background-position: 0 0, 40px 20px, 80px 10px; }
+  to { background-position: 300px 70px, -190px 100px, 300px -60px; }
+}
+
+/* línea del horizonte que ondula */
+.aero-wave {
+  left: 0;
+  top: 47%;
+  width: 200%;
+  height: 34px;
+  fill: rgba(255, 255, 255, 0.16);
+  animation: aeroWave 10s linear infinite;
+}
+
+@keyframes aeroWave {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* peces que nadan */
+.aero-fishes {
+  inset: 0;
+}
+
+.aero-fish {
+  position: absolute;
+  left: 0;
+  animation: aeroSwimRight linear infinite;
+  filter: drop-shadow(0 6px 8px rgba(0, 40, 100, 0.3));
+}
+
+.aero-fish.is-left {
+  animation-name: aeroSwimLeft;
+}
+
+/* el dibujo mira a la izquierda: los que van a la derecha se voltean */
+.aero-fish:not(.is-left) svg {
+  transform: scaleX(-1);
+}
+
+.aero-fish-bob {
+  display: block;
+  animation: aeroBob 2.6s ease-in-out infinite;
+}
+
+.aero-fish svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.aero-fish-tail {
+  transform-box: fill-box;
+  transform-origin: 0% 50%;
+  animation: aeroTail 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes aeroSwimRight {
+  from { transform: translateX(-15vw); }
+  to { transform: translateX(115vw); }
+}
+
+@keyframes aeroSwimLeft {
+  from { transform: translateX(115vw); }
+  to { transform: translateX(-15vw); }
+}
+
+@keyframes aeroBob {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-10px) rotate(2deg); }
+}
+
+@keyframes aeroTail {
+  from { transform: scaleY(1) skewY(-8deg); }
+  to { transform: scaleY(0.82) skewY(8deg); }
+}
+
+/* destellos */
+.aero-sparkles {
+  inset: 0;
+}
+
+.aero-sparkles svg {
+  position: absolute;
+  fill: #fff;
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.9));
+  animation: aeroTwinkle 3.4s ease-in-out infinite;
+}
+
+@keyframes aeroTwinkle {
+  0%, 100% { opacity: 0; transform: scale(0.4) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1) rotate(45deg); }
+}
+
+/* burbujas al tocar el fondo */
+.aero-bursts {
   position: fixed;
-  top: max(16px, env(safe-area-inset-top, 0px));
-  right: 16px;
-  z-index: 40;
-  width: 44px;
-  height: 44px;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+}
+
+.aero-burst {
+  position: absolute;
+}
+
+.aero-burst i {
+  position: absolute;
+  left: -9px;
+  top: -9px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  background:
+    radial-gradient(circle at 30% 28%, #fff 0 14%, transparent 34%),
+    radial-gradient(circle, rgba(170, 230, 255, 0.1) 55%, rgba(150, 220, 255, 0.55) 100%);
+  animation: aeroBurst 1.6s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+}
+
+.aero-burst i:nth-child(2n) { width: 12px; height: 12px; left: -6px; top: -6px; }
+.aero-burst i:nth-child(3n) { width: 24px; height: 24px; left: -12px; top: -12px; }
+
+@keyframes aeroBurst {
+  0% { transform: translate(0, 0) scale(0.2); opacity: 0; }
+  15% { opacity: 1; }
+  100% {
+    transform: translate(calc((var(--k) - 3) * 22px), calc(-90px - var(--k) * 14px)) scale(1);
+    opacity: 0;
+  }
+}
+
+/* ---------- botón de música ---------- */
+
+.aero-music {
+  position: fixed;
+  top: max(18px, env(safe-area-inset-top, 0px));
+  right: max(18px, env(safe-area-inset-right, 0px));
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.aero-music-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 38vw;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(12px) saturate(1.5);
+  -webkit-backdrop-filter: blur(12px) saturate(1.5);
+  box-shadow: 0 6px 16px rgba(0, 60, 140, 0.2);
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--aero-navy);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.aero-music-eq {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+.aero-music-eq i {
+  width: 3px;
+  height: 100%;
+  border-radius: 1px;
+  background: var(--aero-green-deep);
+  transform-origin: bottom;
+  animation: eqBounce 0.9s ease-in-out infinite;
+}
+
+.aero-music-eq i:nth-child(2) { animation-delay: -0.3s; }
+.aero-music-eq i:nth-child(3) { animation-delay: -0.6s; }
+
+.aero-music-btn {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.95);
   display: grid;
   place-items: center;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  background: rgba(255, 255, 255, 0.28);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  color: #fff;
-  box-shadow: 0 6px 18px rgba(10, 50, 90, 0.25);
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
+  color: #fff;
+  background:
+    radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.95) 0 12%, rgba(255, 255, 255, 0.25) 26%, transparent 42%),
+    linear-gradient(180deg, #7fdcff 0%, #2aa6e8 55%, #1580cf 100%);
+  box-shadow: inset 0 -6px 14px rgba(0, 60, 140, 0.35), 0 10px 24px rgba(0, 60, 140, 0.35);
+  transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.25, 1.4), filter 0.2s ease;
 }
 
-.aero-bg-mute svg {
-  width: 20px;
-  height: 20px;
+.aero-music.is-on .aero-music-btn {
+  background:
+    radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.95) 0 12%, rgba(255, 255, 255, 0.25) 26%, transparent 42%),
+    linear-gradient(180deg, #a6f5a1 0%, #4fd34a 55%, #22a51f 100%);
+  box-shadow: inset 0 -6px 14px rgba(0, 90, 0, 0.3), 0 10px 24px rgba(20, 120, 20, 0.35);
+}
+
+.aero-music-btn svg {
+  width: 26px;
+  height: 26px;
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.8;
+  stroke-width: 2.2;
   stroke-linecap: round;
   stroke-linejoin: round;
+  filter: drop-shadow(0 1px 1px rgba(0, 50, 120, 0.5));
 }
 
-.aero-bg-mute:hover {
-  background: rgba(255, 255, 255, 0.4);
-  transform: scale(1.05);
+.aero-music-btn svg .solid {
+  fill: currentColor;
+  stroke: none;
 }
 
-.aero-bg-mute.is-muted {
-  color: rgba(255, 255, 255, 0.7);
-  background: rgba(11, 53, 102, 0.3);
+.aero-music-wave1,
+.aero-music-wave2 {
+  animation: aeroWavePulse 1.4s ease-in-out infinite;
+}
+
+.aero-music-wave2 {
+  animation-delay: 0.25s;
+}
+
+@keyframes aeroWavePulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+
+.aero-music-btn:hover {
+  transform: scale(1.08);
+  filter: brightness(1.06);
+}
+
+.aero-music-btn:active {
+  transform: scale(0.94);
+}
+
+.aero-music-btn:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
 }
 
 /* ---------- encabezado de vidrio ---------- */
@@ -861,6 +1149,16 @@
 }
 
 @media (max-width: 560px) {
+  .aero-music-label {
+    max-width: 44vw;
+    font-size: 12px;
+  }
+
+  .aero-music-btn {
+    width: 50px;
+    height: 50px;
+  }
+
   /* deja libre la esquina del buscador */
   .aero-page {
     padding-top: max(80px, env(safe-area-inset-top, 0px));
@@ -893,8 +1191,19 @@
   .aero-sky,
   .aero-ambient span,
   .aero-bubble,
-  .aero-score-orb {
+  .aero-score-orb,
+  .aero-rays,
+  .aero-clouds span,
+  .aero-caustics,
+  .aero-wave,
+  .aero-sparkles svg,
+  .aero-music-eq i {
     animation: none !important;
+  }
+
+  .aero-fishes,
+  .aero-bursts {
+    display: none;
   }
 
   .aero-ambient {

@@ -8,8 +8,8 @@ const HEART_PATH =
   'M12 21s-6.7-4.35-9.33-8.2C1 10.63 1.4 7.4 4 5.8c2.1-1.3 4.6-.7 6 1.1L12 9l2-2.1c1.4-1.8 3.9-2.4 6-1.1 2.6 1.6 3 4.83 1.33 6.99C18.7 16.65 12 21 12 21z';
 
 /* páginas que traen su propio control de audio y no quieren el
-   mini-player global encima (por ahora, la carta) */
-const HIDDEN_ON = ['/carta'];
+   mini-player global encima (la carta, y el quiz a pantalla completa) */
+const HIDDEN_ON = ['/carta', '/quiz'];
 
 export default function MiniPlayer() {
   const { pathname } = useLocation();
