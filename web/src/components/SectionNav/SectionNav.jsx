@@ -13,6 +13,18 @@ const SECTIONS = [
     icon: <path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z" />,
   },
   {
+    to: '/cumpleanos',
+    label: 'Feliz cumpleaños',
+    hint: 'el pastel y tus velitas',
+    color: '#c49bff',
+    icon: (
+      <>
+        <path d="M4 21h16M5 21v-7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v7" />
+        <path d="M5 16c2.3 1.4 4.7 1.4 7 0s4.7-1.4 7 0M12 12V8M12 5.5v-1" />
+      </>
+    ),
+  },
+  {
     to: '/carta',
     label: 'La carta',
     hint: 'lo que te quería decir',

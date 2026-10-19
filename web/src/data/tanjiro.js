@@ -56,6 +56,9 @@ export const TANJIRO_GALLERY = [
   [9, 'pura travesura', 'Esa sonrisita de que algo trama. Ya te conozco esa cara.'],
   [11, 'chiquito', 'Chiquito, tierno y con su haori. Imposible no quererlo.'],
   [12, 'entre flores', 'Tanjiro y Kanao entre flores. Un día tranquilo, como los que quiero contigo.'],
+  [13, 'ojitos brillantes', 'Esos ojos enormes de emoción. Así te brillan a ti cuando algo te encanta.'],
+  [14, 'primavera', 'Pétalos de cerezo y la boca abierta de felicidad. Puro día bonito.'],
+  [15, '¡yo!', 'Mano arriba, la paz y la sonrisa más grande. Siempre listo para estar contigo.'],
 ].map(([n, title, words]) => ({ src: img(n), title, words }));
 
 /* su canción, para sonar desde el reproductor principal */

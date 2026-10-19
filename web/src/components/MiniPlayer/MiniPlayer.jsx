@@ -9,7 +9,7 @@ const HEART_PATH =
 
 /* páginas que traen su propio control de audio y no quieren el
    mini-player global encima (la carta, y el quiz a pantalla completa) */
-const HIDDEN_ON = ['/carta', '/quiz'];
+const HIDDEN_ON = ['/cumpleanos', '/carta', '/quiz'];
 
 export default function MiniPlayer() {
   const { pathname } = useLocation();

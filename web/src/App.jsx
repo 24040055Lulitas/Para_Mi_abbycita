@@ -4,6 +4,7 @@ import MiniPlayer from './components/MiniPlayer/MiniPlayer';
 import SearchOverlay from './components/SearchOverlay/SearchOverlay';
 import SectionNav from './components/SectionNav/SectionNav';
 import { PlayerProvider } from './context/PlayerContext';
+import Birthday from './pages/Birthday/Birthday';
 import Home from './pages/Home/Home';
 import Letter from './pages/Letter/Letter';
 import Nosotros from './pages/Nosotros/Nosotros';
@@ -29,6 +30,7 @@ export default function App() {
         <Gate>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/cumpleanos" element={<Birthday />} />
             <Route path="/carta" element={<Letter />} />
             <Route path="/nosotros" element={<Nosotros />} />
             <Route path="/quiz" element={<Quiz />} />

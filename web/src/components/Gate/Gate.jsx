@@ -83,9 +83,10 @@ export default function Gate({ children }) {
     setIntro(true);
   };
 
-  /* "Hay algo que quiero decirte": cierra la entrada y abre la carta */
-  const goToLetter = () => {
-    navigate('/carta');
+  /* "Hoy es un día especial": cierra la entrada y abre el cumpleaños
+     (de ahí sigue la carta) */
+  const goToBirthday = () => {
+    navigate('/cumpleanos');
     finish();
   };
 
@@ -218,14 +219,14 @@ export default function Gate({ children }) {
             <button
               type="button"
               className="gate-intro-next"
-              onClick={goToLetter}
+              onClick={goToBirthday}
               style={{ animationDelay: `${INTRO_CTA_AT}s` }}
             >
               <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M4 7l8 6 8-6" />
-                <rect x="3" y="5" width="18" height="14" rx="2" />
+                <rect x="3" y="10" width="18" height="11" rx="1.5" />
+                <path d="M2 7h20v3H2zM12 7v14M12 7c-1.5-3-5-4.5-6-2.5S8.5 7 12 7c3.5 0 7-.5 6-2.5S13.5 4 12 7z" />
               </svg>
-              Hay algo que quiero decirte
+              Hoy es un día especial
             </button>
             <button ref={skipBtnRef} type="button" className="gate-intro-skip" onClick={skipToHome}>
               Saltar

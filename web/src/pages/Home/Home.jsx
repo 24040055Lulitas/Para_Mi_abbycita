@@ -173,6 +173,10 @@ export default function Home() {
             acuerdes de que hay alguien que te quiere y te desea siempre lo mejor.
           </p>
           <div className="dedication-links">
+            <Link to="/cumpleanos" className="timeline-link">
+              Tu cumpleaños
+              <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            </Link>
             <Link to="/carta" className="timeline-link">
               Releer tu carta
               <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
