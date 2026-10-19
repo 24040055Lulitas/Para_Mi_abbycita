@@ -23,7 +23,12 @@ const BOSS_HIT_GAP = 110;
    timeItems  → multiplica cuántos relojes de arena salen
    bossHp / bossTime / bossSpeed → vida, segundos antes de escapar y
                 velocidad de las Lunas Superiores
-   firstBoss / bossGap → segundos hasta la primera y entre una y otra */
+   bossBonus  → segundos extra al vencer a una Luna Superior
+   firstBoss / bossGap → segundos hasta la primera y entre una y otra
+
+   Castillo Infinito está calculado para ser posible: con ~5 cortes por
+   segundo se vence a las 7 Lunas en ~51 s, y el reloj llega a 66 s
+   gracias a los +6 s de cada victoria. */
 const BASE = {
   bosses: false,
   speed: 1,
@@ -33,6 +38,7 @@ const BASE = {
   bossHp: 1,
   bossTime: 1,
   bossSpeed: 1,
+  bossBonus: 0,
   firstBoss: 5,
   bossGap: 3,
 };
@@ -70,9 +76,10 @@ const MODES = {
     spawn: 0.8,
     villagers: 0.06,
     timeItems: 0.8,
-    bossHp: 1.15,
-    bossTime: 0.75,
+    bossHp: 1.4,
+    bossTime: 0.8,
     bossSpeed: 1.2,
+    bossBonus: 3,
     firstBoss: 3,
     bossGap: 1.6,
   },
@@ -89,14 +96,19 @@ const MODES = {
     spawn: 0.65,
     villagers: 0.12,
     timeItems: 0.5,
-    bossHp: 1.25,
-    bossTime: 0.6,
+    bossHp: 2,
+    bossTime: 0.85,
     bossSpeed: 1.45,
+    bossBonus: 6,
     firstBoss: 1.2,
     bossGap: 0.8,
   },
 };
 const MODE_LIST = Object.values(MODES);
+
+/* cortes y segundos de una Luna Superior en un modo */
+const bossHpFor = (def, mode) => Math.round(def.hp * mode.bossHp);
+const bossTimeFor = (def, mode) => def.time * mode.bossTime;
 
 const RING = {
   oni: '#ff5468',
@@ -303,6 +315,47 @@ function Legend({ hard = false }) {
   );
 }
 
+/* las Lunas Superiores con los cortes y segundos que tendrán en un modo */
+function MoonsList({ mode }) {
+  return (
+    <ul className="sg-moons">
+      {UPPER_MOONS.map((u, i) => (
+        <li key={u.name} style={{ '--rank': u.rank, '--i': i }}>
+          <img src={u.src} alt="" loading="lazy" />
+          <span className="sg-moons-name">{u.name}</span>
+          <span className="sg-moons-hp">
+            <b>{bossHpFor(u, mode)}</b> cortes
+          </span>
+          <span className="sg-moons-time">escapa en {Math.round(bossTimeFor(u, mode))} s</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+const totalCuts = (mode) => UPPER_MOONS.reduce((n, u) => n + bossHpFor(u, mode), 0);
+
+/* lo que trae el modo elegido, antes de entrar */
+function ModeDetails({ mode }) {
+  if (!mode.bosses) {
+    return (
+      <p className="sg-details-note">
+        Sin Lunas Superiores: solo Lunas Inferiores, Enmu y aldeanos. Ideal para calentar.
+      </p>
+    );
+  }
+  return (
+    <div className="sg-details">
+      <p className="sg-row-label">Lunas Superiores en {mode.label}</p>
+      <MoonsList key={mode.id} mode={mode} />
+      <p className="sg-details-note">
+        En total <b>{totalCuts(mode)}</b> cortes
+        {mode.bossBonus ? ` · +${mode.bossBonus} s por cada Luna vencida` : ''}
+      </p>
+    </div>
+  );
+}
+
 /* ---------- la arena a pantalla completa ---------- */
 
 function SlashArena({ bests, onBest, onClose }) {
@@ -313,6 +366,7 @@ function SlashArena({ bests, onBest, onClose }) {
   const onBestRef = useRef(onBest);
   const [phase, setPhase] = useState('ready');
   const [modeId, setModeId] = useState('normal');
+  const [selected, setSelected] = useState('normal');
   const [score, setScore] = useState(0);
   const [left, setLeft] = useState(MODES.normal.seconds);
   const [defeated, setDefeated] = useState(0);
@@ -498,7 +552,8 @@ function SlashArena({ bests, onBest, onClose }) {
     const spawnBoss = (index, at = null) => {
       const def = UPPER_MOONS[index];
       const r = Math.max(56, Math.min(98, Math.min(g.w, g.h) * 0.14));
-      const hp = Math.round(def.hp * g.mode.bossHp);
+      const hp = bossHpFor(def, g.mode);
+      const time = bossTimeFor(def, g.mode);
       g.boss = {
         def,
         kind: 'boss',
@@ -506,13 +561,13 @@ function SlashArena({ bests, onBest, onClose }) {
         r,
         hp,
         max: hp,
-        time: def.time * g.mode.bossTime,
+        time,
         x: at ? at.x : g.w / 2,
         y: at ? at.y : g.h + r * 1.6,
         homeY: g.h * 0.36,
         state: at ? 'fight' : 'enter',
         t: 0,
-        life: def.time * g.mode.bossTime,
+        life: time,
         lastHit: 0,
         hitFlash: 0,
         kx: 0,
@@ -535,6 +590,10 @@ function SlashArena({ bests, onBest, onClose }) {
       setScore(g.score);
       setDefeated(g.defeated);
       popup(b.x, b.y - b.r * 0.4, `¡${b.def.name} derrotado! +${b.def.points}`, '#ffc14d', 1.7, true);
+      if (g.mode.bossBonus) {
+        g.timeLeft += g.mode.bossBonus;
+        popup(b.x, b.y + b.r * 0.3, `+${g.mode.bossBonus} s`, '#7fd6ff', 1.7, true);
+      }
       g.boss = null;
       if (b.def.then != null) {
         g.pendingBoss = { index: b.def.then, at: { x: b.x, y: b.y }, delay: 0.8 };
@@ -1020,20 +1079,23 @@ function SlashArena({ bests, onBest, onClose }) {
       </button>
 
       {phase === 'ready' && (
-        <div className="sg-panel">
+        <div className="sg-panel sg-panel--ready">
           <p className="sg-kicker">respiración del agua · primera forma</p>
           <h3 className="sg-title">Corta a los demonios</h3>
           <p className="sg-text">
             Desliza el dedo (o arrastra el mouse) para cortar. Corta 3 o más de un solo tajo para hacer combo.
           </p>
           <Legend hard />
-          <div className="sg-modes">
+          <p className="sg-row-label sg-row-label--plain">elige tu dificultad</p>
+          <div className="sg-modes" role="radiogroup" aria-label="Dificultad">
             {MODE_LIST.map((m) => (
               <button
                 key={m.id}
                 type="button"
-                className={`sg-mode sg-mode--${m.id}`}
-                onClick={() => startGame(m.id)}
+                role="radio"
+                aria-checked={selected === m.id}
+                className={`sg-mode sg-mode--${m.id}${selected === m.id ? ' is-selected' : ''}`}
+                onClick={() => setSelected(m.id)}
                 aria-label={`${m.label}: ${m.seconds} segundos, ${m.hint}. Dificultad ${m.level} de 4`}
               >
                 <span className="sg-mode-level" aria-hidden="true">
@@ -1051,6 +1113,13 @@ function SlashArena({ bests, onBest, onClose }) {
               </button>
             ))}
           </div>
+          <ModeDetails mode={MODES[selected]} />
+          <button type="button" className="sg-btn sg-btn--big sg-start" onClick={() => startGame(selected)}>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 20L20 4M14 4h6v6M7 13l4 4" />
+            </svg>
+            Entrar · {MODES[selected].label}
+          </button>
         </div>
       )}
 
@@ -1084,6 +1153,7 @@ function SlashArena({ bests, onBest, onClose }) {
 export default function SlashGame() {
   const [open, setOpen] = useState(false);
   const [bests, setBests] = useState(() => Object.fromEntries(MODE_LIST.map((m) => [m.id, loadBest(m.bestKey)])));
+  const [previewId, setPreviewId] = useState('hard');
   const close = useCallback(() => setOpen(false), []);
   const onBest = useCallback((id, value) => setBests((b) => ({ ...b, [id]: value })), []);
 
@@ -1100,16 +1170,26 @@ export default function SlashGame() {
           <img className="sg-banner-chibi" src={TANJIRO_PHOTOS.chibi} alt="" loading="lazy" />
         </div>
 
-        <p className="sg-row-label">Lunas Superiores · Difícil, Pilar y Castillo Infinito</p>
-        <ul className="sg-moons">
-          {UPPER_MOONS.map((u) => (
-            <li key={u.name} style={{ '--rank': u.rank }}>
-              <img src={u.src} alt="" loading="lazy" />
-              <span className="sg-moons-name">{u.name}</span>
-              <span className="sg-moons-hp">{u.hp} cortes</span>
-            </li>
+        <p className="sg-row-label">Lunas Superiores · cortes por dificultad</p>
+        <div className="sg-tabs" role="tablist" aria-label="Cortes por dificultad">
+          {MODE_LIST.filter((m) => m.bosses).map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              role="tab"
+              aria-selected={previewId === m.id}
+              className={`sg-tab sg-tab--${m.id}${previewId === m.id ? ' is-active' : ''}`}
+              onClick={() => setPreviewId(m.id)}
+            >
+              {m.label}
+            </button>
           ))}
-        </ul>
+        </div>
+        <MoonsList key={previewId} mode={MODES[previewId]} />
+        <p className="sg-details-note">
+          En total <b>{totalCuts(MODES[previewId])}</b> cortes
+          {MODES[previewId].bossBonus ? ` · +${MODES[previewId].bossBonus} s por cada Luna vencida` : ''}
+        </p>
 
         <Legend />
         <button type="button" className="sg-btn sg-btn--big" onClick={() => setOpen(true)}>

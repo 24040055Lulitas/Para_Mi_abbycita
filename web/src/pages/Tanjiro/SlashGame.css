@@ -180,6 +180,94 @@
   color: #b7aea6;
 }
 
+/* el número de cortes "salta" al cambiar de dificultad */
+.sg-moons-hp b {
+  display: inline-block;
+  font-size: 15px;
+  font-weight: 900;
+  color: #ffc14d;
+  animation: sgNumIn 0.45s cubic-bezier(0.2, 0.9, 0.25, 1.6) both;
+  animation-delay: calc(var(--i) * 45ms);
+}
+
+@keyframes sgNumIn {
+  from { opacity: 0; transform: translateY(6px) scale(0.6); }
+  to { opacity: 1; transform: none; }
+}
+
+.sg-moons-time {
+  font-size: 10.5px;
+  color: #857c76;
+}
+
+.sg-details-note {
+  margin: -6px 0 14px;
+  font-size: 13px;
+  color: #b7aea6;
+}
+
+.sg-details-note b {
+  font-size: 16px;
+  color: #ffc14d;
+}
+
+.sg-details {
+  margin-top: 16px;
+}
+
+.sg-row-label--plain {
+  margin: 4px 0 10px;
+  color: #2fbf7a;
+}
+
+/* pestañas de dificultad en la tarjeta de la sección */
+.sg-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.sg-tab {
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  color: #b7aea6;
+  font: 700 13px 'Manrope', sans-serif;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.sg-tab:hover {
+  color: #f6efe6;
+}
+
+.sg-tab.is-active {
+  border-color: #ffc14d;
+  background: rgba(255, 193, 77, 0.14);
+  color: #ffc14d;
+}
+
+.sg-tab--pillar.is-active {
+  border-color: #ff5468;
+  background: rgba(255, 84, 104, 0.16);
+  color: #ff8a96;
+}
+
+.sg-tab--castle.is-active {
+  border-color: #c98bff;
+  background: rgba(190, 120, 255, 0.16);
+  color: #d9b3ff;
+}
+
+.sg-tab:focus-visible {
+  outline: 2px solid #2fbf7a;
+  outline-offset: 2px;
+}
+
 /* ---------- elegir modo ---------- */
 
 .sg-modes {
@@ -299,6 +387,33 @@
 .sg-mode:hover {
   transform: translateY(-2px);
   border-color: #fff;
+}
+
+/* el modo elegido se ve "encendido" */
+.sg-mode.is-selected {
+  border-color: #fff;
+  border-width: 2px;
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.12), 0 10px 24px rgba(0, 0, 0, 0.4);
+}
+
+.sg-mode:not(.is-selected) {
+  opacity: 0.72;
+}
+
+.sg-mode:not(.is-selected):hover {
+  opacity: 1;
+}
+
+/* el panel de inicio es largo: hace scroll si no cabe */
+.sg-panel--ready {
+  width: min(560px, calc(100% - 32px));
+  max-height: calc(100dvh - 96px);
+  overflow-y: auto;
+}
+
+.sg-start {
+  margin-top: 4px;
 }
 
 .sg-mode:focus-visible {
@@ -648,7 +763,8 @@
   .sg-panel,
   .sg-overlay,
   .sg-banner-chibi,
-  .sg-mode--castle {
+  .sg-mode--castle,
+  .sg-moons-hp b {
     animation: none;
   }
 }
