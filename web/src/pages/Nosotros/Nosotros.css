@@ -737,7 +737,8 @@
   }
 
   .nos-topbar {
-    padding: max(34px, env(safe-area-inset-top, 0px)) 20px 0 76px;
+    /* deja libres el botón de buscar y el menú de secciones */
+    padding: max(34px, env(safe-area-inset-top, 0px)) 16px 0 132px;
     text-align: left;
   }
 

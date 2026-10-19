@@ -9,6 +9,9 @@
   inset: 0;
   z-index: 100;
   display: grid;
+  /* sin esto, la columna crece con el texto más ancho y en celular
+     el sobre se sale por la derecha */
+  grid-template-columns: minmax(0, 1fr);
   place-items: center;
   overflow: hidden;
   padding: 24px 20px;
