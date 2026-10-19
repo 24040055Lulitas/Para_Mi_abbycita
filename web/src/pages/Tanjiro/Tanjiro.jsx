@@ -4,6 +4,7 @@ import Reveal from '../../components/Reveal';
 import { SESSION_KEY as GATE_SESSION_KEY } from '../../components/Gate/Gate';
 import { usePlayer } from '../../context/PlayerContext';
 import { TANJIRO_GALLERY, TANJIRO_SONG, TANJIRO_TRAITS } from '../../data/tanjiro';
+import { KatanaMeter, SwordTrail } from './TanjiroFx';
 import './Tanjiro.css';
 
 /* vuelve al gate desde cero, igual que el botón "Desde el inicio" del
@@ -54,16 +55,19 @@ function WavePattern({ id }) {
 
 /* ---------- tarjeta que se voltea ---------- */
 function TraitCard({ trait, index }) {
-  const [flipped, setFlipped] = useState(false);
+  /* se cuentan las vueltas para que el tajo se repita en cada una */
+  const [flips, setFlips] = useState(0);
+  const flipped = flips % 2 === 1;
   return (
     <button
       type="button"
       className={`tj-trait${flipped ? ' is-flipped' : ''}`}
       style={{ '--i': index }}
-      onClick={() => setFlipped((f) => !f)}
+      onClick={() => setFlips((f) => f + 1)}
       aria-pressed={flipped}
       aria-label={`${trait.title}. ${flipped ? trait.back : trait.front} Toca para voltear.`}
     >
+      {flips > 0 && <span key={flips} className={`tj-trait-cut${flipped ? ' is-fire' : ''}`} aria-hidden="true" />}
       <span className="tj-trait-inner">
         <span className="tj-trait-face tj-trait-front" aria-hidden="true">
           <span className="tj-trait-num">0{index + 1}</span>
@@ -114,6 +118,7 @@ function Viewer({ index, onClose, onStep }) {
       <figure className="tj-viewer-card" key={index} onClick={(e) => e.stopPropagation()}>
         <div className="tj-viewer-frame">
           <img src={item.src} alt={item.title} />
+          <span className="tj-viewer-cut" aria-hidden="true" />
         </div>
         <figcaption>
           <p className="tj-viewer-title">{item.title}</p>
@@ -172,6 +177,8 @@ export default function Tanjiro() {
 
   return (
     <div className="tj-page">
+      <SwordTrail />
+      <KatanaMeter />
       <div className="tj-embers" aria-hidden="true">
         {EMBERS.map((e, i) => (
           <span
@@ -215,6 +222,10 @@ export default function Tanjiro() {
               <span className="tj-song-title">{TANJIRO_SONG.title}</span>
             </span>
           </button>
+          <p className="tj-swipe-hint">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20L20 4M14 4h6v6" /></svg>
+            desliza el dedo o arrastra el mouse para blandir la espada
+          </p>
         </div>
         <div className="tj-scroll-hint" aria-hidden="true">
           <span />
@@ -223,6 +234,7 @@ export default function Tanjiro() {
 
       {/* ===== lo que tienen en común ===== */}
       <Reveal as="section" className="tj-traits-section">
+        <span className="tj-cut" aria-hidden="true" />
         <p className="tj-eyebrow">lo que tienen en común</p>
         <h2 className="tj-h2">Tanjiro y tú</h2>
         <p className="tj-lead">Toca cada tarjeta. Por un lado está él; por el otro, tú.</p>
@@ -236,6 +248,7 @@ export default function Tanjiro() {
       {/* ===== galería ===== */}
       <Reveal as="section" className="tj-gallery-section">
         <WavePattern id="tjWavesGallery" />
+        <span className="tj-cut tj-cut--reverse" aria-hidden="true" />
         <p className="tj-eyebrow">tu galería</p>
         <h2 className="tj-h2">Los Tanjiros que guardas</h2>
         <div className="tj-gallery">
@@ -260,6 +273,7 @@ export default function Tanjiro() {
       {/* ===== cierre con fuego ===== */}
       <Reveal as="section" className="tj-fire">
         <div className="tj-fire-glow" aria-hidden="true" />
+        <span className="tj-cut tj-cut--fire" aria-hidden="true" />
         <p className="tj-eyebrow tj-eyebrow--warm">como una danza de fuego</p>
         <blockquote className="tj-quote">
           Dicen que su fuego nunca se apaga, aunque el camino se ponga difícil.

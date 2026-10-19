@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePlayer } from '../../context/PlayerContext';
 import { QUIZ, QUIZ_RESULTS } from '../../data/quiz';
+import AeroGames from './AeroGames';
 import './Quiz.css';
 
 /* música de ambiente del quiz: suena sola, aparte del reproductor
@@ -391,7 +392,7 @@ export default function Quiz() {
 
   /* tocar el agua o el cielo suelta un puñito de burbujas */
   const onSceneTap = (e) => {
-    if (e.target.closest('button, a, .aero-header-glass, .aero-modal')) return;
+    if (e.target.closest('button, a, .aero-header-glass, .ag-section-glass, .aero-modal')) return;
     const id = ++burstId;
     setBursts((b) => [...b.slice(-6), { id, x: e.clientX, y: e.clientY }]);
     setTimeout(() => setBursts((b) => b.filter((x) => x.id !== id)), 1800);
@@ -522,6 +523,8 @@ export default function Quiz() {
           </button>
         </div>
       )}
+
+      <AeroGames />
 
       {openIndex !== null && (
         <QuestionCard index={openIndex} picked={answers[openIndex]} onPick={pick} onClose={close} />

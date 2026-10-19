@@ -1,0 +1,498 @@
+/* =========================================================
+   Minijuegos del quiz — mismo vidrio Aero que el resto
+   ========================================================= */
+
+/* ---------- sección con los dos juegos ---------- */
+
+.ag-section {
+  position: relative;
+  z-index: 2;
+  max-width: 760px;
+  margin: 34px auto 0;
+}
+
+.ag-section-glass {
+  position: relative;
+  padding: 24px 26px 26px;
+  border-radius: 30px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.38);
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(18px) saturate(1.5);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  box-shadow: 0 20px 50px rgba(0, 60, 140, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.ag-section-title {
+  position: relative;
+  margin-top: 4px;
+  font-family: 'Nunito', 'Segoe UI', sans-serif;
+  font-weight: 900;
+  font-size: clamp(24px, 4.4vw, 32px);
+  color: var(--aero-navy);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.ag-picks {
+  position: relative;
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.ag-pick {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 84px;
+  padding: 12px 16px 12px 12px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(232, 246, 255, 0.9) 49%, rgba(206, 234, 255, 0.9) 50%, rgba(230, 246, 255, 0.95) 100%);
+  box-shadow: 0 10px 24px rgba(0, 60, 140, 0.2), inset 0 1px 0 #fff;
+  color: var(--aero-navy);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.25, 1.4), box-shadow 0.25s ease;
+}
+
+.ag-pick:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 30px rgba(0, 60, 140, 0.28), inset 0 1px 0 #fff;
+}
+
+.ag-pick:active {
+  transform: scale(0.98);
+}
+
+.ag-pick:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+
+.ag-pick-orb {
+  width: 58px;
+  height: 58px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid rgba(255, 255, 255, 0.95);
+  background:
+    radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.95) 0 12%, rgba(255, 255, 255, 0.25) 26%, transparent 42%),
+    linear-gradient(180deg, #7fdcff 0%, #2aa6e8 55%, #1580cf 100%);
+  box-shadow: inset 0 -6px 12px rgba(0, 60, 140, 0.35), 0 6px 14px rgba(0, 60, 140, 0.3);
+}
+
+.ag-pick--memory .ag-pick-orb {
+  background:
+    radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.95) 0 12%, rgba(255, 255, 255, 0.25) 26%, transparent 42%),
+    linear-gradient(180deg, #a6f5a1 0%, #4fd34a 55%, #22a51f 100%);
+  box-shadow: inset 0 -6px 12px rgba(0, 90, 0, 0.3), 0 6px 14px rgba(20, 120, 20, 0.3);
+}
+
+.ag-pick-orb svg {
+  width: 28px;
+  height: 28px;
+  fill: rgba(255, 255, 255, 0.25);
+  stroke: #fff;
+  stroke-width: 1.8;
+  filter: drop-shadow(0 1px 1px rgba(0, 50, 120, 0.5));
+}
+
+.ag-pick-text b {
+  display: block;
+  font-weight: 900;
+  font-size: 17px;
+}
+
+.ag-pick-text span {
+  display: block;
+  margin-top: 2px;
+  font-weight: 600;
+  font-size: 13.5px;
+  line-height: 1.35;
+  color: #1d4f86;
+}
+
+/* ---------- modal del juego ---------- */
+
+.ag-card-modal {
+  width: min(720px, 100%);
+}
+
+.ag-modal-title {
+  position: relative;
+  margin-top: 6px;
+  padding-right: 48px;
+  font-family: 'Nunito', 'Segoe UI', sans-serif;
+  font-weight: 900;
+  font-size: 26px;
+  color: var(--aero-navy);
+}
+
+.ag-hud {
+  position: relative;
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ag-chip {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  background: linear-gradient(180deg, #ffffff, #dff1ff);
+  box-shadow: 0 3px 8px rgba(0, 60, 140, 0.15);
+  font-weight: 700;
+  font-size: 14px;
+  color: #1d4f86;
+}
+
+.ag-chip b {
+  font-weight: 900;
+  font-size: 16px;
+  color: var(--aero-navy);
+}
+
+.ag-chip.is-hurry b {
+  color: var(--aero-red);
+}
+
+.ag-chip.is-hurry {
+  animation: agPulse 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes agPulse {
+  to { transform: scale(1.06); }
+}
+
+.ag-chip--soft {
+  margin-left: auto;
+  background: rgba(255, 255, 255, 0.5);
+  font-weight: 600;
+}
+
+/* tarjetitas de resultado/inicio encima del juego */
+.ag-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  text-align: center;
+  border-radius: inherit;
+  background: rgba(225, 243, 255, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: aeroFade 0.35s ease both;
+}
+
+.ag-overlay-kicker {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--aero-blue);
+}
+
+.ag-overlay-title {
+  font-weight: 900;
+  font-size: 24px;
+  color: var(--aero-navy);
+}
+
+.ag-overlay-score {
+  font-weight: 900;
+  font-size: 64px;
+  line-height: 1;
+  color: var(--aero-green-deep);
+  text-shadow: 0 2px 0 #fff, 0 8px 20px rgba(20, 120, 20, 0.3);
+  animation: aeroPopIn 0.6s cubic-bezier(0.2, 0.9, 0.25, 1.5) both;
+}
+
+.ag-overlay-text {
+  max-width: 380px;
+  font-weight: 600;
+  font-size: 15.5px;
+  line-height: 1.5;
+  color: #1d4f86;
+}
+
+.ag-overlay .aero-btn {
+  margin-top: 6px;
+}
+
+/* ---------- revienta burbujas ---------- */
+
+.ag-arena {
+  position: relative;
+  margin-top: 14px;
+  height: min(440px, 56vh);
+  border-radius: 24px;
+  overflow: hidden;
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  background:
+    radial-gradient(ellipse 70% 40% at 50% 0%, rgba(255, 255, 255, 0.55), transparent 70%),
+    linear-gradient(180deg, #8fdcff 0%, #35a8ea 45%, #136fc0 100%);
+  box-shadow: inset 0 -30px 60px rgba(0, 40, 110, 0.35), 0 10px 26px rgba(0, 60, 140, 0.25);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.ag-arena-water {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(ellipse 40px 14px at 50% 50%, rgba(255, 255, 255, 0.35), transparent 70%),
+    radial-gradient(ellipse 70px 20px at 50% 50%, rgba(200, 245, 255, 0.25), transparent 70%);
+  background-size: 160px 80px, 240px 110px;
+  mix-blend-mode: overlay;
+  animation: aeroCaustics 12s linear infinite;
+}
+
+.ag-bubble {
+  position: absolute;
+  bottom: -100px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  translate: -50% 0;
+  background:
+    radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.95) 0 11%, rgba(255, 255, 255, 0) 30%),
+    radial-gradient(circle, rgba(190, 240, 255, 0.12) 52%, rgba(160, 225, 255, 0.6) 100%);
+  box-shadow: inset 0 -6px 14px rgba(0, 90, 170, 0.25), 0 4px 12px rgba(0, 40, 110, 0.2);
+  animation: agRise var(--dur) linear forwards;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@keyframes agRise {
+  0% { bottom: -100px; transform: translateX(0); }
+  33% { transform: translateX(var(--sway)); }
+  66% { transform: translateX(calc(var(--sway) * -0.6)); }
+  100% { bottom: calc(100% + 20px); transform: translateX(calc(var(--sway) * 0.4)); }
+}
+
+.ag-bubble--tiny {
+  background:
+    radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.95) 0 13%, rgba(255, 255, 255, 0) 32%),
+    radial-gradient(circle, rgba(170, 255, 230, 0.2) 50%, rgba(80, 230, 200, 0.7) 100%);
+}
+
+.ag-bubble--heart {
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.95) 0 11%, rgba(255, 255, 255, 0) 30%),
+    radial-gradient(circle, rgba(255, 220, 235, 0.25) 45%, rgba(255, 120, 175, 0.75) 100%);
+  box-shadow: inset 0 -6px 14px rgba(200, 30, 100, 0.25), 0 0 18px rgba(255, 140, 190, 0.6);
+}
+
+.ag-bubble--heart svg {
+  width: 52%;
+  height: 52%;
+  fill: #fff;
+  filter: drop-shadow(0 1px 2px rgba(200, 30, 100, 0.6));
+}
+
+.ag-bubble:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+}
+
+/* reventón: aro que se abre y el puntaje que sube */
+.ag-pop {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.ag-pop i {
+  position: absolute;
+  left: calc(var(--s) / -2);
+  top: calc(var(--s) / -2);
+  width: var(--s);
+  height: var(--s);
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.95);
+  animation: agRing 0.5s ease-out forwards;
+}
+
+.ag-pop em {
+  position: absolute;
+  left: 0;
+  top: 0;
+  translate: -50% -50%;
+  font-style: normal;
+  font-weight: 900;
+  font-size: 22px;
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(0, 50, 120, 0.6);
+  animation: agFloatUp 0.65s ease-out forwards;
+}
+
+.ag-pop--heart em {
+  color: #ffe1ee;
+  font-size: 28px;
+}
+
+@keyframes agRing {
+  from { transform: scale(0.8); opacity: 1; }
+  to { transform: scale(1.7); opacity: 0; }
+}
+
+@keyframes agFloatUp {
+  from { transform: translateY(0) scale(0.7); opacity: 1; }
+  to { transform: translateY(-46px) scale(1.1); opacity: 0; }
+}
+
+/* ---------- memoria ---------- */
+
+.ag-board-wrap {
+  position: relative;
+  margin-top: 14px;
+  min-height: 300px;
+  border-radius: 24px;
+}
+
+.ag-board {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.ag-card {
+  aspect-ratio: 3 / 4;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  perspective: 900px;
+  animation: aeroPopIn 0.5s cubic-bezier(0.2, 0.9, 0.25, 1.35) both;
+  animation-delay: calc(var(--i) * 45ms);
+}
+
+.ag-card-inner {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.55s cubic-bezier(0.3, 1.3, 0.4, 1);
+}
+
+.ag-card.is-shown .ag-card-inner {
+  transform: rotateY(180deg);
+}
+
+.ag-card-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border: 1.5px solid rgba(255, 255, 255, 0.95);
+}
+
+.ag-card-back {
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 30% 18%, rgba(255, 255, 255, 0.9) 0 10%, rgba(255, 255, 255, 0.2) 24%, transparent 40%),
+    linear-gradient(180deg, #7fdcff 0%, #2aa6e8 55%, #1580cf 100%);
+  box-shadow: inset 0 -10px 20px rgba(0, 60, 140, 0.35), 0 6px 14px rgba(0, 60, 140, 0.25);
+}
+
+.ag-card-back svg {
+  width: 40%;
+  fill: rgba(255, 255, 255, 0.85);
+  filter: drop-shadow(0 2px 3px rgba(0, 50, 120, 0.4));
+}
+
+.ag-card-front {
+  transform: rotateY(180deg);
+  background: #cfe9ff;
+  box-shadow: 0 6px 14px rgba(0, 60, 140, 0.25);
+}
+
+.ag-card-front img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ag-card.is-matched .ag-card-front {
+  border-color: #8ff08a;
+  box-shadow: 0 0 0 3px rgba(79, 211, 74, 0.6), 0 8px 20px rgba(20, 120, 20, 0.35);
+  animation: agMatch 0.5s ease;
+}
+
+@keyframes agMatch {
+  50% { filter: brightness(1.25); }
+}
+
+.ag-card:hover:not(.is-shown) .ag-card-inner {
+  transform: translateY(-3px);
+}
+
+.ag-card:focus-visible {
+  outline: none;
+}
+
+.ag-card:focus-visible .ag-card-face {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+}
+
+/* ---------- celular ---------- */
+
+@media (max-width: 560px) {
+  .ag-section-glass {
+    padding: 20px 16px;
+    border-radius: 24px;
+  }
+
+  .ag-picks {
+    grid-template-columns: 1fr;
+  }
+
+  .ag-modal-title {
+    font-size: 22px;
+  }
+
+  .ag-chip--soft {
+    margin-left: 0;
+  }
+
+  .ag-arena {
+    height: min(420px, 58vh);
+  }
+
+  .ag-board {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ag-arena-water,
+  .ag-chip.is-hurry,
+  .ag-card {
+    animation: none !important;
+  }
+
+  .ag-card-inner {
+    transition: none;
+  }
+}

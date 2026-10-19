@@ -560,9 +560,24 @@
   margin-top: 26px;
 }
 
+/* cada imagen entra deslizándose, alternando lados, como si la cortaran */
 .tj-gallery-section.is-visible .tj-tile {
-  animation: tjTileIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  animation-delay: calc(var(--i) * 90ms + 150ms);
+  animation: tjTileFromLeft 0.75s cubic-bezier(0.2, 0.9, 0.25, 1.15) both;
+  animation-delay: calc(var(--i) * 90ms + 350ms);
+}
+
+.tj-gallery-section.is-visible .tj-tile:nth-child(even) {
+  animation-name: tjTileFromRight;
+}
+
+@keyframes tjTileFromLeft {
+  from { opacity: 0; transform: translateX(-70px) rotate(-5deg) scale(0.92); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes tjTileFromRight {
+  from { opacity: 0; transform: translateX(70px) rotate(5deg) scale(0.92); }
+  to { opacity: 1; transform: none; }
 }
 
 @keyframes tjTileIn {
@@ -572,6 +587,8 @@
 
 /* marco de cuadriculado */
 .tj-tile-frame {
+  position: relative;
+  overflow: hidden;
   display: block;
   padding: 7px;
   border-radius: 16px;
@@ -849,6 +866,282 @@
   right: 14px;
 }
 
+/* =========================================================
+   Efectos de espada
+   ========================================================= */
+
+/* estela al deslizar (se dibuja en TanjiroFx.jsx) */
+.tj-trail {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.tj-swipe-hint {
+  margin-top: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: rgba(183, 174, 166, 0.85);
+  animation: tjFadeUp 1s 2.4s ease both;
+}
+
+.tj-swipe-hint svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: #7fd0ff;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: tjHintSwipe 2.4s 3s ease-in-out infinite;
+}
+
+@keyframes tjHintSwipe {
+  0%, 60%, 100% { transform: none; }
+  30% { transform: translate(3px, -3px); }
+}
+
+/* ---------- katana como barra de progreso ---------- */
+
+.tj-katana {
+  --p: 0;
+  position: fixed;
+  right: max(14px, env(safe-area-inset-right, 0px));
+  top: 50%;
+  z-index: 40;
+  height: 46vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateY(-50%);
+  pointer-events: none;
+  animation: tjFadeIn 1s 1.2s ease both;
+}
+
+.tj-katana-blade {
+  position: relative;
+  flex: 1;
+  width: 8px;
+  overflow: hidden;
+  /* punta en diagonal, como una hoja de verdad */
+  clip-path: polygon(0 6%, 100% 0, 100% 100%, 0 100%);
+  background: linear-gradient(90deg, #1b1b22, #2c2c36 55%, #15151b);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.tj-katana-fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: bottom;
+  transform: scaleY(var(--p));
+  background: linear-gradient(0deg, #2fa8ff 0%, #7fd6ff 35%, #ff8a3d 75%, var(--tj-red) 100%);
+  box-shadow: 0 0 12px rgba(127, 214, 255, 0.7);
+  transition: transform 0.15s linear;
+}
+
+/* filo brillante que recorre la hoja */
+.tj-katana-shine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 30%;
+  top: -30%;
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.85), transparent);
+  animation: tjBladeShine 3.6s ease-in-out infinite;
+}
+
+@keyframes tjBladeShine {
+  0%, 55% { top: -30%; }
+  100% { top: 110%; }
+}
+
+.tj-katana-guard {
+  width: 22px;
+  height: 7px;
+  margin: 2px 0;
+  border-radius: 3px;
+  background: var(--tj-checker);
+  background-size: 6px 6px;
+  box-shadow: 0 0 0 1px rgba(47, 191, 122, 0.6);
+}
+
+.tj-katana-hilt {
+  width: 7px;
+  height: 46px;
+  border-radius: 2px 2px 4px 4px;
+  background:
+    repeating-linear-gradient(45deg, transparent 0 4px, rgba(255, 255, 255, 0.12) 4px 6px),
+    #121216;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.tj-katana.is-full .tj-katana-fill {
+  animation: tjBladeBlaze 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes tjBladeBlaze {
+  from { box-shadow: 0 0 10px rgba(255, 138, 61, 0.6); filter: brightness(1); }
+  to { box-shadow: 0 0 22px rgba(255, 84, 104, 0.95); filter: brightness(1.3); }
+}
+
+/* ---------- corte que cruza cada sección al aparecer ---------- */
+
+.tj-cut {
+  position: absolute;
+  left: -8%;
+  right: -8%;
+  top: 56px;
+  z-index: 3;
+  height: 3px;
+  border-radius: 3px;
+  pointer-events: none;
+  opacity: 0;
+  transform-origin: left center;
+  transform: rotate(-5deg) scaleX(0);
+  background: linear-gradient(90deg, transparent, #fff 18%, #7fd6ff 55%, transparent);
+  box-shadow: 0 0 16px #4fb8ff, 0 0 36px rgba(79, 184, 255, 0.55);
+}
+
+.tj-cut--reverse {
+  transform-origin: right center;
+  transform: rotate(5deg) scaleX(0);
+}
+
+.tj-cut--fire {
+  background: linear-gradient(90deg, transparent, #fff 18%, var(--tj-ember) 55%, transparent);
+  box-shadow: 0 0 16px var(--tj-red), 0 0 36px rgba(255, 138, 61, 0.55);
+}
+
+.reveal.is-visible > .tj-cut {
+  animation: tjSectionCut 1s 0.1s cubic-bezier(0.7, 0, 0.2, 1) forwards;
+}
+
+.reveal.is-visible > .tj-cut--reverse {
+  animation-name: tjSectionCutReverse;
+}
+
+@keyframes tjSectionCut {
+  0% { opacity: 1; transform: rotate(-5deg) scaleX(0); }
+  45% { opacity: 1; transform: rotate(-5deg) scaleX(1); }
+  100% { opacity: 0; transform: rotate(-5deg) scaleX(1) translateY(6px); }
+}
+
+@keyframes tjSectionCutReverse {
+  0% { opacity: 1; transform: rotate(5deg) scaleX(0); }
+  45% { opacity: 1; transform: rotate(5deg) scaleX(1); }
+  100% { opacity: 0; transform: rotate(5deg) scaleX(1) translateY(6px); }
+}
+
+/* el título aparece "rebanado" detrás del corte */
+.reveal .tj-h2,
+.reveal .tj-quote {
+  clip-path: polygon(0 -20%, 0 -20%, 0 120%, 0 120%);
+}
+
+.reveal.is-visible .tj-h2,
+.reveal.is-visible .tj-quote {
+  animation: tjSlideCut 0.85s 0.45s cubic-bezier(0.7, 0, 0.2, 1) forwards;
+}
+
+@keyframes tjSlideCut {
+  from { clip-path: polygon(0 -20%, 0 -20%, 0 120%, 0 120%); transform: translateX(-26px); }
+  to { clip-path: polygon(0 -20%, 120% -20%, 120% 120%, 0 120%); transform: none; }
+}
+
+/* ---------- tajo al voltear una tarjeta ---------- */
+
+.tj-trait {
+  position: relative;
+}
+
+.tj-trait-cut {
+  position: absolute;
+  left: -6%;
+  right: -6%;
+  top: 50%;
+  z-index: 4;
+  height: 3px;
+  border-radius: 3px;
+  pointer-events: none;
+  transform-origin: left center;
+  background: linear-gradient(90deg, transparent, #fff 20%, #7fd6ff 60%, transparent);
+  box-shadow: 0 0 14px #4fb8ff, 0 0 30px rgba(79, 184, 255, 0.6);
+  animation: tjCardCut 0.55s cubic-bezier(0.7, 0, 0.2, 1) forwards;
+}
+
+.tj-trait-cut.is-fire {
+  background: linear-gradient(90deg, transparent, #fff 20%, var(--tj-ember) 60%, transparent);
+  box-shadow: 0 0 14px var(--tj-red), 0 0 30px rgba(255, 138, 61, 0.6);
+}
+
+@keyframes tjCardCut {
+  0% { opacity: 1; transform: rotate(-28deg) scaleX(0); }
+  50% { opacity: 1; transform: rotate(-28deg) scaleX(1); }
+  100% { opacity: 0; transform: rotate(-28deg) scaleX(1); }
+}
+
+/* ---------- destello de hoja sobre las imágenes ---------- */
+
+.tj-tile-frame::after {
+  content: '';
+  position: absolute;
+  top: -20%;
+  bottom: -20%;
+  left: 0;
+  width: 34%;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.55) 48%, rgba(127, 214, 255, 0.4) 52%, transparent);
+  transform: translateX(-160%) skewX(-18deg);
+}
+
+.tj-tile:hover .tj-tile-frame::after,
+.tj-tile:focus-visible .tj-tile-frame::after {
+  animation: tjGlint 0.6s ease-out;
+}
+
+@keyframes tjGlint {
+  to { transform: translateX(420%) skewX(-18deg); }
+}
+
+/* ---------- corte al abrir una imagen en el visor ---------- */
+
+.tj-viewer-frame {
+  position: relative;
+  overflow: hidden;
+}
+
+.tj-viewer-frame img {
+  animation: tjSlideCut 0.6s 0.2s cubic-bezier(0.7, 0, 0.2, 1) both;
+}
+
+.tj-viewer-cut {
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  top: 50%;
+  height: 4px;
+  border-radius: 4px;
+  pointer-events: none;
+  opacity: 0;
+  transform-origin: left center;
+  background: linear-gradient(90deg, transparent, #fff 20%, #7fd6ff 60%, transparent);
+  box-shadow: 0 0 18px #4fb8ff, 0 0 40px rgba(79, 184, 255, 0.6);
+  animation: tjViewerCut 0.7s cubic-bezier(0.7, 0, 0.2, 1) forwards;
+}
+
+@keyframes tjViewerCut {
+  0% { opacity: 1; transform: rotate(-20deg) scaleX(0); }
+  45% { opacity: 1; transform: rotate(-20deg) scaleX(1); }
+  100% { opacity: 0; transform: rotate(-20deg) scaleX(1); }
+}
+
 /* ---------- tablet y celular ---------- */
 
 @media (max-width: 960px) {
@@ -913,6 +1206,30 @@
   .tj-enter {
     width: 100%;
   }
+
+  .tj-katana {
+    right: 6px;
+    height: 34vh;
+  }
+
+  .tj-katana-blade {
+    width: 6px;
+  }
+
+  .tj-katana-guard {
+    width: 16px;
+    height: 5px;
+  }
+
+  .tj-katana-hilt {
+    width: 5px;
+    height: 32px;
+  }
+
+  .tj-swipe-hint {
+    max-width: 260px;
+    text-align: left;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -945,6 +1262,26 @@
   .tj-trait,
   .tj-tile {
     opacity: 1;
+    animation: none !important;
+  }
+
+  .tj-cut,
+  .tj-trait-cut,
+  .tj-viewer-cut,
+  .tj-tile-frame::after,
+  .tj-swipe-hint {
+    display: none;
+  }
+
+  .tj-katana-shine,
+  .tj-katana.is-full .tj-katana-fill,
+  .tj-viewer-frame img {
+    animation: none !important;
+  }
+
+  .reveal .tj-h2,
+  .reveal .tj-quote {
+    clip-path: none;
     animation: none !important;
   }
 }
