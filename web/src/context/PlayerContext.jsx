@@ -90,7 +90,7 @@ export function PlayerProvider({ children }) {
     if (!('mediaSession' in navigator) || !track) return;
     navigator.mediaSession.metadata = new window.MediaMetadata({
       title: track.title,
-      artist: track.subtitle || 'Billie Eilish',
+      artist: track.artist || 'Billie Eilish',
       album: 'para ABBY',
       artwork: track.cover ? [{ src: track.cover, sizes: '512x512', type: 'image/png' }] : [],
     });

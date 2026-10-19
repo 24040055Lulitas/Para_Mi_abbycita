@@ -364,7 +364,7 @@ function ResultCard({ score, onRetry, onNext }) {
         </p>
         <div className="aero-result-actions">
           <button ref={nextRef} type="button" className="aero-btn aero-btn--green aero-btn--big" onClick={onNext}>
-            Ahora sí, entra a tu lugar
+            Hay un rincón más para ti
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M5 12h14M13 6l6 6-6 6" />
             </svg>
@@ -527,7 +527,7 @@ export default function Quiz() {
         <QuestionCard index={openIndex} picked={answers[openIndex]} onPick={pick} onClose={close} />
       )}
 
-      {showResult && <ResultCard score={score} onRetry={retry} onNext={() => navigate('/')} />}
+      {showResult && <ResultCard score={score} onRetry={retry} onNext={() => navigate('/tanjiro')} />}
     </div>
   );
 }

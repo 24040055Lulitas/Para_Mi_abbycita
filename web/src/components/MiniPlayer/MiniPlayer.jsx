@@ -64,7 +64,7 @@ export default function MiniPlayer() {
           <div className="mini-cover">{current?.cover && <img src={current.cover} alt="" />}</div>
           <div className="mini-info">
             <p className="mini-title">{current?.title || 'Elige una canción'}</p>
-            <p className="mini-subtitle">{current ? `Billie Eilish · ${current.subtitle}` : 'tu lugar está listo'}</p>
+            <p className="mini-subtitle">{current ? `${current.artist || 'Billie Eilish'} · ${current.subtitle}` : 'tu lugar está listo'}</p>
           </div>
           {current && (
             <button
