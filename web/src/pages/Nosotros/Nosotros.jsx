@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Reveal from '../../components/Reveal';
-import { COLOR_POEM, HEART_PHOTOS, POLAROIDS } from '../../data/nosotros';
+import { usePlayer } from '../../context/PlayerContext';
+import { COLOR_POEM, HEART_PHOTOS, POLAROIDS, VIDEOS } from '../../data/nosotros';
 import './Nosotros.css';
 
 /* todas las fotos en un solo recorrido, para poder pasar de una a otra
@@ -111,9 +112,93 @@ function PhotoViewer({ index, onClose, onStep }) {
   );
 }
 
+/* ---------- visor de videos: se reproducen con sonido ---------- */
+function VideoViewer({ index, onClose, onStep }) {
+  const closeRef = useRef(null);
+  const video = index === null ? null : VIDEOS[index];
+
+  useEffect(() => {
+    if (index === null) return undefined;
+    closeRef.current?.focus({ preventScroll: true });
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    function onKey(e) {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowRight') onStep(1);
+      if (e.key === 'ArrowLeft') onStep(-1);
+    }
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [index, onClose, onStep]);
+
+  return (
+    <div
+      className={`nos-viewer nos-viewer--video${video ? ' is-open' : ''}`}
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={video ? video.title : 'Visor de videos'}
+      aria-hidden={!video}
+    >
+      <button ref={closeRef} type="button" className="nos-viewer-close" onClick={onClose} aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+      </button>
+
+      {video && (
+        <figure className="nos-viewer-card" key={index} onClick={(e) => e.stopPropagation()}>
+          <div className="nos-viewer-photo nos-viewer-photo--video">
+            <video src={video.src} poster={video.poster} controls autoPlay playsInline preload="auto" />
+          </div>
+          <figcaption>
+            <p className="nos-viewer-title">{video.title}</p>
+            <p className="nos-viewer-words">{video.words}</p>
+            <p className="nos-viewer-count">
+              {index + 1} de {VIDEOS.length}
+            </p>
+          </figcaption>
+        </figure>
+      )}
+
+      <button
+        type="button"
+        className="nos-viewer-nav nos-viewer-nav--prev"
+        onClick={(e) => {
+          e.stopPropagation();
+          onStep(-1);
+        }}
+        aria-label="Video anterior"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
+      </button>
+      <button
+        type="button"
+        className="nos-viewer-nav nos-viewer-nav--next"
+        onClick={(e) => {
+          e.stopPropagation();
+          onStep(1);
+        }}
+        aria-label="Video siguiente"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+      </button>
+    </div>
+  );
+}
+
 export default function Nosotros() {
   const navigate = useNavigate();
   const [openIndex, setOpenIndex] = useState(null);
+  const [videoIndex, setVideoIndex] = useState(null);
+  const { isPlaying, togglePlay } = usePlayer();
+
+  /* la música de fondo se pausa al abrir un video, para que se escuche */
+  const openVideo = (i) => {
+    if (isPlaying) togglePlay();
+    setVideoIndex(i);
+  };
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -122,6 +207,11 @@ export default function Nosotros() {
   const close = useCallback(() => setOpenIndex(null), []);
   const step = useCallback(
     (dir) => setOpenIndex((i) => (i === null ? i : (i + dir + ALL_PHOTOS.length) % ALL_PHOTOS.length)),
+    []
+  );
+  const closeVideo = useCallback(() => setVideoIndex(null), []);
+  const stepVideo = useCallback(
+    (dir) => setVideoIndex((i) => (i === null ? i : (i + dir + VIDEOS.length) % VIDEOS.length)),
     []
   );
 
@@ -210,6 +300,30 @@ export default function Nosotros() {
         </div>
       </Reveal>
 
+      {/* ===== videos ===== */}
+      <Reveal as="section" className="nos-videos-section">
+        <p className="nos-eyebrow">para verlos con sonido</p>
+        <h2 className="nos-section-title">nuestros videos</h2>
+        <div className="nos-videos">
+          {VIDEOS.map((v, i) => (
+            <button
+              key={v.src}
+              type="button"
+              className="nos-video"
+              style={{ '--i': i }}
+              onClick={() => openVideo(i)}
+              aria-label={`Ver video: ${v.title}`}
+            >
+              <img src={v.poster} alt="" loading="lazy" />
+              <span className="nos-video-play" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+              </span>
+              <span className="nos-video-label">{v.title}</span>
+            </button>
+          ))}
+        </div>
+      </Reveal>
+
       {/* ===== carta a los colores ===== */}
       <Reveal as="section" className="nos-poem">
         <p className="nos-eyebrow">para ti y tus colores</p>
@@ -251,6 +365,7 @@ export default function Nosotros() {
       </div>
 
       <PhotoViewer index={openIndex} onClose={close} onStep={step} />
+      <VideoViewer index={videoIndex} onClose={closeVideo} onStep={stepVideo} />
     </div>
   );
 }

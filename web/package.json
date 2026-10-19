@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "publicar": "vite build --outDir ../sitio --emptyOutDir",
     "lint": "oxlint",
     "preview": "vite preview"
   },

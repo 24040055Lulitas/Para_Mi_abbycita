@@ -102,11 +102,9 @@
   width: 100%;
   min-width: 0;
   max-width: 820px;
+  /* los textos dejan pasar los toques: así se puede reventar un globo
+     aunque esté detrás del título */
   pointer-events: none;
-}
-
-.bd-hero-content > * {
-  pointer-events: auto;
 }
 
 .bd-hero .bd-eyebrow {
@@ -237,6 +235,12 @@
   font-size: 22px;
   color: rgba(253, 243, 248, 0.6);
   animation: bdUp 0.8s 3s ease both;
+}
+
+.bd-hero-hint.is-done {
+  font-size: 28px;
+  color: var(--bd-yellow);
+  animation: bdHop 0.6s cubic-bezier(0.3, 1.6, 0.5, 1);
 }
 
 @keyframes bdUp {
@@ -423,14 +427,14 @@
   z-index: 2;
   display: flex;
   justify-content: center;
-  gap: 2px;
-  margin-bottom: -14px;
+  gap: 6px;
+  margin-bottom: -18px;
 }
 
 .bd-candle {
   position: relative;
-  width: 44px;
-  height: 108px;
+  width: 78px;
+  height: 160px;
   padding: 0;
   border: 0;
   background: none;
@@ -443,29 +447,35 @@
   cursor: default;
 }
 
-.bd-stick {
+/* vela con forma de número: rayada como las de pastel */
+.bd-num {
   position: absolute;
-  left: 50%;
+  left: 0;
+  right: 0;
   bottom: 0;
-  width: 13px;
-  height: 58px;
-  margin-left: -6.5px;
-  border-radius: 4px 4px 2px 2px;
+  font-family: 'Anton', 'Manrope', sans-serif;
+  font-size: 112px;
+  line-height: 1;
+  color: var(--c);
   background:
-    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.85) 0 5px, transparent 5px 11px),
+    repeating-linear-gradient(-50deg, rgba(255, 255, 255, 0.9) 0 7px, transparent 7px 16px),
     var(--c);
-  box-shadow: inset -3px 0 0 rgba(0, 0, 0, 0.12);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -webkit-text-stroke: 2px rgba(255, 255, 255, 0.55);
+  filter: drop-shadow(0 4px 0 rgba(0, 0, 0, 0.18));
 }
 
 /* mecha */
-.bd-stick::before {
+.bd-num::before {
   content: '';
   position: absolute;
   left: 50%;
-  top: -7px;
-  width: 2px;
-  height: 8px;
-  margin-left: -1px;
+  top: -6px;
+  width: 3px;
+  height: 10px;
+  margin-left: -1.5px;
   border-radius: 1px;
   background: #3b2a2a;
 }
@@ -473,7 +483,7 @@
 .bd-flame {
   position: absolute;
   left: 50%;
-  bottom: 64px;
+  bottom: 118px;
   width: 16px;
   height: 28px;
   margin-left: -8px;
@@ -509,7 +519,7 @@
 .bd-smoke {
   position: absolute;
   left: 50%;
-  bottom: 66px;
+  bottom: 120px;
   width: 10px;
   height: 10px;
   margin-left: -5px;
@@ -1091,12 +1101,6 @@
 
   .bd-wish-list li::before {
     left: 14px;
-  }
-}
-
-@media (max-width: 380px) {
-  .bd-candle {
-    width: 38px;
   }
 }
 

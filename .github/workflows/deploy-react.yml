@@ -1,10 +1,9 @@
 name: Deploy React (web/) to GitHub Pages
 
-# Disparo manual a propósito: mientras se arma el sitio nuevo en React,
-# esto NO debe reemplazar el sitio actual (el de html/index.html) que
-# ya está publicado. Cuando el sitio en React esté listo, se activa
-# desde la pestaña "Actions" del repo (botón "Run workflow"), o
-# cambiando este trigger a `push: branches: [main]`.
+# NO USAR por ahora: GitHub Pages publica la rama main tal cual, y el
+# sitio en React ya sale de la carpeta sitio/ (se genera con
+# "npm run publicar" dentro de web/). Este workflow publicaría solo
+# web/dist y dejaría sin la música y las imágenes que viven en la raíz.
 on:
   workflow_dispatch:
 

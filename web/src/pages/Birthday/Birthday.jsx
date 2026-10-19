@@ -23,19 +23,32 @@ const CONFETTI = Array.from({ length: 28 }, (_, i) => ({
   color: PARTY[i % PARTY.length],
 }));
 
+/* sus años: salen en la portada, en las velas y en el reto de los globos */
+const AGE = 19;
+
 /* globos de la portada: se revientan al tocarlos y vuelven a salir */
 const BALLOONS = [
-  { x: 6, y: 18, s: 1, color: '#ff7eb6', d: 0 },
-  { x: 84, y: 12, s: 1.1, color: '#7cc6ff', d: 0.8 },
-  { x: 14, y: 62, s: 0.85, color: '#ffd166', d: 1.6 },
-  { x: 88, y: 58, s: 0.9, color: '#3ddc84', d: 0.4 },
-  { x: 72, y: 80, s: 0.75, color: '#c49bff', d: 1.1 },
-  { x: 24, y: 86, s: 0.7, color: '#ff8a5c', d: 2 },
-];
-const BALLOON_BACK_MS = 5000;
+  [4, 10, 1],
+  [86, 7, 1.1],
+  [48, 4, 0.8],
+  [27, 22, 0.9],
+  [66, 20, 0.85],
+  [12, 40, 0.95],
+  [90, 33, 0.9],
+  [40, 52, 0.75],
+  [78, 50, 1],
+  [5, 68, 0.85],
+  [60, 66, 0.8],
+  [92, 74, 0.75],
+  [22, 84, 0.8],
+  [72, 88, 0.9],
+  [44, 92, 0.7],
+].map(([x, y, s], i) => ({ x, y, s, color: PARTY[i % PARTY.length], d: (i * 0.53) % 2.4 }));
+const BALLOON_BACK_MS = 3500;
 
-const CANDLES = 5;
-const CANDLE_COLORS = ['#ff7eb6', '#7cc6ff', '#ffd166', '#3ddc84', '#c49bff'];
+/* velas con forma de número */
+const CANDLES = String(AGE).split('');
+const CANDLE_COLORS = ['#ff7eb6', '#7cc6ff'];
 
 /* soplido: volumen (rms 0–1) que cuenta como soplar y cuánto tiempo
    seguido hay que soplar para apagar cada velita */
@@ -78,7 +91,7 @@ function Title() {
   );
 }
 
-function Balloons() {
+function Balloons({ count, onPop }) {
   const [popped, setPopped] = useState({});
   const timers = useRef([]);
 
@@ -87,6 +100,7 @@ function Balloons() {
   const pop = (i) => {
     if (popped[i]) return;
     setPopped((p) => ({ ...p, [i]: true }));
+    onPop();
     timers.current.push(
       setTimeout(() => setPopped((p) => ({ ...p, [i]: false })), BALLOON_BACK_MS)
     );
@@ -94,6 +108,7 @@ function Balloons() {
 
   return (
     <div className="bd-balloons">
+      {count >= AGE && <Burst />}
       {BALLOONS.map((b, i) => (
         <button
           key={i}
@@ -150,7 +165,7 @@ const CAN_LISTEN =
   !!(window.AudioContext || window.webkitAudioContext);
 
 function Cake() {
-  const [lit, setLit] = useState(() => Array(CANDLES).fill(true));
+  const [lit, setLit] = useState(() => CANDLES.map(() => true));
   const [wished, setWished] = useState(false);
   const [burst, setBurst] = useState(0);
   const [mic, setMic] = useState('off'); // off | asking | on | denied
@@ -193,7 +208,7 @@ function Cake() {
   });
 
   const relight = () => {
-    setLit(Array(CANDLES).fill(true));
+    setLit(CANDLES.map(() => true));
     setWished(false);
   };
 
@@ -243,11 +258,11 @@ function Cake() {
     }
   };
 
-  let hint = 'Toca cada velita para apagarla.';
+  let hint = `Pide un deseo y toca el ${CANDLES.join(' y el ')} para apagarlos.`;
   if (mic === 'on') hint = 'Te escucho: sopla fuerte cerca del micrófono.';
   else if (mic === 'asking') hint = 'Dale permiso al micrófono para soplar de verdad.';
-  else if (mic === 'denied') hint = 'Sin micrófono no pasa nada: toca cada velita.';
-  if (out > 0 && !wished) hint = `${out} de ${CANDLES}… ¡ya casi!`;
+  else if (mic === 'denied') hint = 'Sin micrófono no pasa nada: toca cada vela.';
+  if (out > 0 && !wished) hint = '¡Ya casi! Falta una.';
 
   return (
     <div className={`bd-cake-wrap${wished ? ' is-wished' : ''}`}>
@@ -258,14 +273,16 @@ function Cake() {
               key={i}
               type="button"
               className={`bd-candle${on ? ' is-lit' : ' is-out'}`}
-              style={{ '--c': CANDLE_COLORS[i], '--i': i }}
+              style={{ '--c': CANDLE_COLORS[i % CANDLE_COLORS.length], '--i': i }}
               onClick={() => blowOut(i)}
               disabled={!on}
-              aria-label={on ? `Apagar la velita ${i + 1}` : `Velita ${i + 1} apagada`}
+              aria-label={on ? `Apagar la vela del ${CANDLES[i]}` : `Vela del ${CANDLES[i]} apagada`}
             >
               <span className="bd-flame" aria-hidden="true" />
               <span className="bd-smoke" aria-hidden="true" />
-              <span className="bd-stick" aria-hidden="true" />
+              <span className="bd-num" aria-hidden="true">
+                {CANDLES[i]}
+              </span>
             </button>
           ))}
         </div>
@@ -312,10 +329,20 @@ function Cake() {
 
 export default function Birthday() {
   const navigate = useNavigate();
+  const [pops, setPops] = useState(0);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  const onPop = () => {
+    setPops((n) => n + 1);
+    if (pops + 1 === AGE) navigator.vibrate?.(80);
+  };
+
+  let balloonHint = 'toca los globos';
+  if (pops > 0 && pops < AGE) balloonHint = `${pops} de ${AGE} globos`;
+  else if (pops >= AGE) balloonHint = `¡${AGE} globos para tus ${AGE} años!`;
 
   return (
     <div className="bd-page">
@@ -339,9 +366,9 @@ export default function Birthday() {
 
       {/* ===== portada ===== */}
       <header className="bd-hero">
-        <Balloons />
+        <Balloons count={pops} onPop={onPop} />
         <div className="bd-hero-content">
-          <p className="bd-eyebrow">hoy es tu día</p>
+          <p className="bd-eyebrow">hoy cumples {AGE}</p>
           <Title />
           <p className="bd-sub">
             Antes de la carta y de todo lo demás, hoy se celebra lo más importante:{' '}
@@ -351,7 +378,9 @@ export default function Birthday() {
             <img className="bd-hero-sticker bd-hero-sticker--billie" src={BIRTHDAY_STICKERS.billie} alt="" />
             <img className="bd-hero-sticker bd-hero-sticker--tanjiro" src={BIRTHDAY_STICKERS.tanjiro} alt="" />
           </div>
-          <p className="bd-hero-hint">toca los globos</p>
+          <p className={`bd-hero-hint${pops >= AGE ? ' is-done' : ''}`} aria-live="polite">
+            {balloonHint}
+          </p>
         </div>
         <div className="bd-scroll-hint" aria-hidden="true">
           <span />
@@ -406,7 +435,7 @@ export default function Birthday() {
       {/* ===== deseos ===== */}
       <Reveal as="section" className="bd-section bd-wishes">
         <p className="bd-eyebrow">lo que te deseo</p>
-        <h2 className="bd-h2">Para este año</h2>
+        <h2 className="bd-h2">Para tus {AGE}</h2>
         <ol className="bd-wish-list">
           {BIRTHDAY_WISHES.map((w, i) => (
             <li key={w} style={{ '--i': i, '--c': PARTY[i % PARTY.length] }}>

@@ -2,11 +2,13 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="refresh" content="0; url=html/index.html" />
-  <title>BE Player — para ABBY</title>
-  <script>location.replace("html/index.html");</script>
+  <!-- el sitio nuevo (React) vive en sitio/: se genera con
+       "npm run publicar" dentro de web/ -->
+  <meta http-equiv="refresh" content="0; url=sitio/" />
+  <title>Para Abby</title>
+  <script>location.replace("sitio/" + location.hash);</script>
 </head>
 <body>
-  <p><a href="html/index.html">Entrar</a></p>
+  <p><a href="sitio/">Entrar</a></p>
 </body>
 </html>

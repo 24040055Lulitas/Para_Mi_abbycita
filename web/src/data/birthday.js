@@ -27,9 +27,9 @@ export const BIRTHDAY_TANJIRO = [
   { src: pic('tanjiro-sigma'), caption: 'con moñito y todo' },
 ];
 
-/* lo que le deseo */
+/* lo que le deseo para sus 19 */
 export const BIRTHDAY_WISHES = [
-  'Que este año te trate con la misma ternura con la que tú tratas a todos.',
+  'Que tus 19 te traten con la misma ternura con la que tú tratas a todos.',
   'Que tengas noches tranquilas y canciones que te abracen cuando haga falta.',
   'Que te rías mucho, de esas risas tuyas que me cambian el día.',
   'Y que me dejes estar ahí para verlo, este año y todos los que vengan.',

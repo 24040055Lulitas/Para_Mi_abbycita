@@ -79,6 +79,24 @@ export const POLAROIDS = [
   },
 ];
 
+/* nuestros videos: viven en public/timeline/videos/ y su portada en
+   videos/posters/ (un cuadro sacado del mismo video) */
+const video = (n, title, words) => ({
+  src: `./timeline/videos/0${n}.mp4`,
+  poster: `./timeline/videos/posters/0${n}.jpg`,
+  title,
+  words,
+});
+
+export const VIDEOS = [
+  video(1, 'el paseo en bote', 'Las luces temblando en el agua y un frío que no nos importó.'),
+  video(4, 'las primeras flores', 'Tu estado con las primeras flores que te di, y Billie de fondo. Lo vi y no pude dejar de sonreír.'),
+  video(3, 'las rosas', 'Tú, las rosas y esa foto con los ojitos cerrados que tanto me gusta.'),
+  video(2, 'con canción de fondo', 'Nosotros dos y una canción sonando. Así quiero que se sienta todo.'),
+  video(6, 'tú y el dinosaurio', 'Te emocionaste con un dinosaurio en medio del mall, y yo me emocioné viéndote a ti.'),
+  video(5, 'una noche nuestra', 'Una noche cualquiera que terminó siendo de las que se recuerdan.'),
+];
+
 /* "Carta a tus colores": versos del poema; '' deja un espacio entre
    estrofas y { em: '...', c: 'blue'|'pink'|'black'|'green'|'red' } va
    resaltado en letra a mano, coloreado según el acento de esa estrofa */
