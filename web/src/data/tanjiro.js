@@ -35,7 +35,7 @@ const CAPTIONS = [
   ['atardecer', 'Un campo de flores y una sonrisa tranquila. Así quiero que se sientan tus días.'],
   ['modo emoción', 'Esa emoción cuando sale algo nuevo de Demon Slayer. Ya sé que pones la misma cara.'],
   ['verde y negro', 'Verde, negro y corazones: tus colores.'],
-  ['la rana', 'Hasta él trae su rana, como la de nuestro paseo en bote.'],
+  ['la rana', 'Diadema de rana y cara de enojado. Imposible no quererlo.'],
   ['pensativo', 'Seguro está pensando en algo bonito. Como yo, en ti.'],
 ];
 

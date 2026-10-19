@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import AuraParticles from '../../components/AuraParticles';
-import { SESSION_KEY as GATE_SESSION_KEY } from '../../components/Gate/Gate';
+import { restartFromGate } from '../../components/Gate/restart';
 import ScrollMeter from '../../components/ScrollMeter';
 import Reveal from '../../components/Reveal';
 import TrackPanel from '../../components/TrackPanel/TrackPanel';
@@ -30,20 +30,6 @@ const HEART_PATH =
    desplazamiento a cada sección se hace con scrollIntoView */
 function scrollToId(id) {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-/* "Desde el inicio": vuelve a mostrar el gate (sobre → carta → bienvenida)
-   desde cero, como si fuera la primera vez. Una recarga completa es la
-   forma más simple de reiniciar el estado del Gate sin acoplar Home a
-   sus internals. */
-function restartFromGate() {
-  try {
-    sessionStorage.removeItem(GATE_SESSION_KEY);
-  } catch {
-    /* almacenamiento no disponible, no pasa nada */
-  }
-  window.location.hash = '/';
-  window.location.reload();
 }
 
 const NAV_ITEMS = [

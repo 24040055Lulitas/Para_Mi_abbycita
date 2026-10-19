@@ -170,6 +170,17 @@
   to { transform: scale(1.06); }
 }
 
+.ag-chip--combo {
+  border-color: #ffd27a;
+  background: linear-gradient(180deg, #fff6d8, #ffd27a);
+  color: #8a5a00;
+  animation: aeroPopIn 0.35s cubic-bezier(0.2, 0.9, 0.25, 1.6) both;
+}
+
+.ag-chip--combo b {
+  color: #b35a00;
+}
+
 .ag-chip--soft {
   margin-left: auto;
   background: rgba(255, 255, 255, 0.5);
@@ -216,6 +227,11 @@
   color: var(--aero-green-deep);
   text-shadow: 0 2px 0 #fff, 0 8px 20px rgba(20, 120, 20, 0.3);
   animation: aeroPopIn 0.6s cubic-bezier(0.2, 0.9, 0.25, 1.5) both;
+}
+
+.ag-overlay-score--soft {
+  color: var(--aero-blue);
+  text-shadow: 0 2px 0 #fff, 0 8px 20px rgba(0, 60, 140, 0.25);
 }
 
 .ag-overlay-text {
@@ -305,6 +321,47 @@
   filter: drop-shadow(0 1px 2px rgba(200, 30, 100, 0.6));
 }
 
+/* erizo de mar: resta puntos, se ve distinto a propósito */
+.ag-bubble--urchin {
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.ag-bubble--urchin svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 3px 6px rgba(60, 0, 40, 0.45));
+  animation: agUrchinSpin 3s linear infinite;
+}
+
+.ag-bubble--urchin polygon {
+  fill: #7a2a6e;
+  stroke: #ff5468;
+  stroke-width: 0.8;
+  stroke-linejoin: round;
+}
+
+.ag-urchin-eye {
+  fill: #fff;
+}
+
+@keyframes agUrchinSpin {
+  to { transform: rotate(360deg); }
+}
+
+.ag-pop--urchin i {
+  border-color: #ff5468;
+}
+
+.ag-pop--urchin em {
+  color: #ff5468;
+  text-shadow: 0 2px 6px rgba(255, 255, 255, 0.8);
+}
+
 .ag-bubble:focus-visible {
   outline: 3px solid #fff;
   outline-offset: 2px;
@@ -372,7 +429,7 @@
 }
 
 .ag-card {
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 4 / 5;
   padding: 0;
   border: 0;
   background: none;
@@ -479,15 +536,25 @@
     height: min(420px, 58vh);
   }
 
+  /* 16 cartas: 4x4 también en celular para que quepan sin scroll */
   .ag-board {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
+    gap: 6px;
+  }
+
+  .ag-card-face {
+    border-radius: 12px;
+  }
+
+  .ag-chip {
+    padding: 5px 11px;
+    font-size: 13px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .ag-arena-water,
   .ag-chip.is-hurry,
+  .ag-bubble--urchin svg,
   .ag-card {
     animation: none !important;
   }

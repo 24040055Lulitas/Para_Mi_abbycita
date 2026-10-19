@@ -1149,8 +1149,9 @@
 }
 
 @media (max-width: 560px) {
+  /* deja libre la esquina del menú de secciones */
   .aero-music-label {
-    max-width: 44vw;
+    max-width: 34vw;
     font-size: 12px;
   }
 

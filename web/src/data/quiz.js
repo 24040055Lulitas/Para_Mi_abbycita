@@ -17,9 +17,9 @@ export const QUIZ = [
   {
     topic: 'las flores',
     question: '¿Qué día te di tus primeras flores?',
-    options: ['14 de febrero', '13 de septiembre', '30 de agosto', '1 de agosto'],
+    options: ['14 de febrero', '13 de septiembre', '23 de agosto', '1 de agosto'],
     answer: 2,
-    note: 'El 30 de agosto. Y todavía me acuerdo de tu cara al verlas.',
+    note: 'El 23 de agosto. Y todavía me acuerdo de tu cara al verlas.',
   },
   {
     topic: 'el té',
@@ -31,9 +31,9 @@ export const QUIZ = [
   {
     topic: 'el bote',
     question: 'En el paseo en bote de noche, ¿quién iba de copiloto?',
-    options: ['Una rana de peluche', 'Un dinosaurio de peluche', 'Un cerdito de peluche', 'Nadie, íbamos solos'],
-    answer: 0,
-    note: 'La rana, muy seria, cuidándonos del frío.',
+    options: ['Una rana de peluche', 'Rex, un dinosaurio de peluche', 'Un cerdito de peluche', 'Nadie, íbamos solos'],
+    answer: 1,
+    note: 'Rex, muy serio, cuidándonos del frío.',
   },
   {
     topic: 'la canción',

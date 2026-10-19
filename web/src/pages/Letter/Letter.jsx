@@ -92,8 +92,8 @@ export default function Letter() {
 
           <Reveal as="p">
             Me acuerdo de todo. Del paseo en bote de noche, con las luces temblando en el agua,
-            la rana de peluche de copiloto y un frío que no nos importó. De las primeras
-            flores, el 30 de agosto, y de cómo me las describiste tú. Del té de burbujas el 13
+            Rex, el dinosaurio de peluche, de copiloto y un frío que no nos importó. De las primeras
+            flores, el 23 de agosto, y de cómo me las describiste tú. Del té de burbujas el 13
             de septiembre: tu Ferrero, mi Taro, y tu nombre escrito en el vaso como si fuera
             cualquier cosa, cuando para mí no lo es.
           </Reveal>

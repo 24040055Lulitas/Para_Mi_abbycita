@@ -2,6 +2,7 @@ import { HashRouter, Route, Routes } from 'react-router-dom';
 import Gate from './components/Gate/Gate';
 import MiniPlayer from './components/MiniPlayer/MiniPlayer';
 import SearchOverlay from './components/SearchOverlay/SearchOverlay';
+import SectionNav from './components/SectionNav/SectionNav';
 import { PlayerProvider } from './context/PlayerContext';
 import Home from './pages/Home/Home';
 import Letter from './pages/Letter/Letter';
@@ -36,6 +37,7 @@ export default function App() {
             <Route path="/secreto" element={<Secret />} />
           </Routes>
           <SearchOverlay />
+          <SectionNav />
           <MiniPlayer />
         </Gate>
       </HashRouter>

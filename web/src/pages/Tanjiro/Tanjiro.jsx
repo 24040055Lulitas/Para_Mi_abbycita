@@ -1,24 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Reveal from '../../components/Reveal';
-import { SESSION_KEY as GATE_SESSION_KEY } from '../../components/Gate/Gate';
+import { restartFromGate } from '../../components/Gate/restart';
 import { usePlayer } from '../../context/PlayerContext';
 import { TANJIRO_GALLERY, TANJIRO_SONG, TANJIRO_TRAITS } from '../../data/tanjiro';
+import SlashGame from './SlashGame';
 import { KatanaMeter, SwordTrail } from './TanjiroFx';
 import './Tanjiro.css';
-
-/* vuelve al gate desde cero, igual que el botón "Desde el inicio" del
-   inicio — una recarga completa es la forma más simple de reiniciar el
-   estado del Gate sin acoplar esta página a sus internals */
-function restartFromGate() {
-  try {
-    sessionStorage.removeItem(GATE_SESSION_KEY);
-  } catch {
-    /* almacenamiento no disponible, no pasa nada */
-  }
-  window.location.hash = '/';
-  window.location.reload();
-}
 
 /* brasas que suben desde abajo, en rojo, naranja y amarillo */
 const EMBERS = Array.from({ length: 26 }, (_, i) => ({
@@ -269,6 +257,9 @@ export default function Tanjiro() {
           ))}
         </div>
       </Reveal>
+
+      {/* ===== minijuego ===== */}
+      <SlashGame />
 
       {/* ===== cierre con fuego ===== */}
       <Reveal as="section" className="tj-fire">

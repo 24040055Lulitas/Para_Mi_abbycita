@@ -39,18 +39,29 @@ function CloseIcon() {
 
 const HEART = 'M12 21s-6.7-4.35-9.33-8.2C1 10.63 1.4 7.4 4 5.8c2.1-1.3 4.6-.7 6 1.1L12 9l2-2.1c1.4-1.8 3.9-2.4 6-1.1 2.6 1.6 3 4.83 1.33 6.99C18.7 16.65 12 21 12 21z';
 
+/* erizo de mar: una estrella de 14 puntas */
+const URCHIN = Array.from({ length: 28 }, (_, i) => {
+  const a = (i / 28) * Math.PI * 2;
+  const r = i % 2 === 0 ? 11.5 : 7;
+  return `${(12 + Math.cos(a) * r).toFixed(2)},${(12 + Math.sin(a) * r).toFixed(2)}`;
+}).join(' ');
+
 /* =========================================================
    Juego 1: revienta burbujas
    ========================================================= */
 
 const RUSH_SECONDS = 30;
-const RUSH_BEST_KEY = 'abby-aero-rush-best';
+const RUSH_BEST_KEY = 'abby-aero-rush-best-v2';
+/* si pasan más de estos ms entre dos burbujas, la racha se rompe */
+const COMBO_WINDOW = 900;
+/* puntos base de cada tipo de burbuja */
+const RUSH_POINTS = { normal: 1, tiny: 2, heart: 3, urchin: -3 };
 
 function rushMessage(score) {
-  if (score >= 45) return 'Reina absoluta de las burbujas. No quedó ni una.';
-  if (score >= 30) return 'Qué rapidez. Así de rápido me ganaste a mí.';
-  if (score >= 15) return 'Nada mal. Otra ronda y rompes tu récord.';
-  return 'Las burbujas también se merecen un descanso. ¿Otra?';
+  if (score >= 90) return 'Reina absoluta de las burbujas. Ni el erizo pudo contigo.';
+  if (score >= 55) return 'Qué rapidez. Así de rápido me ganaste a mí.';
+  if (score >= 25) return 'Nada mal. Otra ronda y rompes tu récord.';
+  return 'Esos erizos son tramposos. ¿Otra?';
 }
 
 function BubbleRush() {
@@ -58,6 +69,7 @@ function BubbleRush() {
   const [bubbles, setBubbles] = useState([]);
   const [pops, setPops] = useState([]);
   const [score, setScore] = useState(0);
+  const [multi, setMulti] = useState(1);
   const [left, setLeft] = useState(RUSH_SECONDS);
   const [best, setBest] = useState(() => loadBest(RUSH_BEST_KEY));
   const [isRecord, setIsRecord] = useState(false);
@@ -65,10 +77,13 @@ function BubbleRush() {
   const idRef = useRef(0);
   const scoreRef = useRef(0);
   const bestRef = useRef(best);
+  const comboRef = useRef({ streak: 0, lastAt: 0 });
 
   const start = () => {
     scoreRef.current = 0;
+    comboRef.current = { streak: 0, lastAt: 0 };
     setScore(0);
+    setMulti(1);
     setBubbles([]);
     setPops([]);
     setLeft(RUSH_SECONDS);
@@ -78,32 +93,45 @@ function BubbleRush() {
 
   useEffect(() => {
     if (phase !== 'playing') return undefined;
-    const endsAt = Date.now() + RUSH_SECONDS * 1000;
+    const startedAt = Date.now();
+    const endsAt = startedAt + RUSH_SECONDS * 1000;
+    let spawnTimer = 0;
+
+    /* dificultad: 0 al empezar, 1 al final */
+    const progress = () => Math.min(1, (Date.now() - startedAt) / (RUSH_SECONDS * 1000));
 
     const spawn = () => {
+      const p = progress();
       const id = ++idRef.current;
       const r = Math.random();
-      const kind = r < 0.12 ? 'heart' : r < 0.2 ? 'tiny' : 'normal';
+      const kind = r < 0.12 + p * 0.1 ? 'urchin' : r < 0.22 + p * 0.1 ? 'heart' : r < 0.36 + p * 0.1 ? 'tiny' : 'normal';
+      /* cada vez suben más rápido */
+      const speed = 1 - p * 0.45;
       setBubbles((list) => [
         ...list,
         {
           id,
           kind,
           x: 6 + Math.random() * 82,
-          size: kind === 'tiny' ? 38 : kind === 'heart' ? 66 : 52 + Math.random() * 30,
-          dur: kind === 'tiny' ? 3.2 : 4.2 + Math.random() * 2.6,
-          sway: (Math.random() - 0.5) * 60,
+          size: kind === 'tiny' ? 32 : kind === 'heart' ? 56 : kind === 'urchin' ? 54 : 44 + Math.random() * 26,
+          dur: (kind === 'tiny' ? 2.8 : kind === 'heart' ? 3.2 : 3.6 + Math.random() * 2.2) * speed,
+          sway: (Math.random() - 0.5) * (60 + p * 80),
         },
       ]);
+      /* y salen cada vez más seguido */
+      spawnTimer = setTimeout(spawn, 460 - p * 230);
     };
 
     spawn();
-    const spawner = setInterval(spawn, 480);
     const ticker = setInterval(() => {
       const remaining = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
       setLeft(remaining);
+      if (comboRef.current.streak && Date.now() - comboRef.current.lastAt > COMBO_WINDOW) {
+        comboRef.current.streak = 0;
+        setMulti(1);
+      }
       if (remaining === 0) {
-        clearInterval(spawner);
+        clearTimeout(spawnTimer);
         clearInterval(ticker);
         setBubbles([]);
         setPhase('done');
@@ -115,10 +143,10 @@ function BubbleRush() {
           setIsRecord(true);
         }
       }
-    }, 200);
+    }, 150);
 
     return () => {
-      clearInterval(spawner);
+      clearTimeout(spawnTimer);
       clearInterval(ticker);
     };
   }, [phase]);
@@ -127,8 +155,22 @@ function BubbleRush() {
     e.preventDefault();
     const arena = arenaRef.current?.getBoundingClientRect();
     const rect = e.currentTarget.getBoundingClientRect();
-    const points = b.kind === 'heart' ? 3 : b.kind === 'tiny' ? 2 : 1;
-    scoreRef.current += points;
+    const now = Date.now();
+    const combo = comboRef.current;
+    let points;
+    let m = 1;
+    if (b.kind === 'urchin') {
+      combo.streak = 0;
+      points = RUSH_POINTS.urchin;
+    } else {
+      combo.streak = now - combo.lastAt <= COMBO_WINDOW ? combo.streak + 1 : 1;
+      /* x2 desde 5 seguidas, x3 desde 10 */
+      m = Math.min(3, 1 + Math.floor(combo.streak / 5));
+      points = RUSH_POINTS[b.kind] * m;
+    }
+    combo.lastAt = now;
+    setMulti(m);
+    scoreRef.current = Math.max(0, scoreRef.current + points);
     setScore(scoreRef.current);
     setBubbles((list) => list.filter((x) => x.id !== b.id));
     if (arena) {
@@ -140,7 +182,7 @@ function BubbleRush() {
           x: rect.left - arena.left + rect.width / 2,
           y: rect.top - arena.top + rect.height / 2,
           size: rect.width,
-          points,
+          label: points > 0 ? `+${points}` : `${points}`,
           kind: b.kind,
         },
       ]);
@@ -159,6 +201,11 @@ function BubbleRush() {
         <span className={`ag-chip${phase === 'playing' && left <= 5 ? ' is-hurry' : ''}`}>
           <b>{left}</b> s
         </span>
+        {multi > 1 && (
+          <span key={multi} className="ag-chip ag-chip--combo">
+            racha <b>x{multi}</b>
+          </span>
+        )}
         <span className="ag-chip ag-chip--soft">récord {best ?? '—'}</span>
       </div>
 
@@ -178,11 +225,20 @@ function BubbleRush() {
             }}
             onPointerDown={(e) => pop(e, b)}
             onAnimationEnd={(e) => e.animationName === 'agRise' && escaped(b.id)}
-            aria-label={b.kind === 'heart' ? 'Burbuja de corazón, tres puntos' : 'Burbuja'}
+            aria-label={
+              b.kind === 'urchin' ? 'Erizo, resta puntos' : b.kind === 'heart' ? 'Burbuja de corazón, tres puntos' : 'Burbuja'
+            }
           >
             {b.kind === 'heart' && (
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d={HEART} />
+              </svg>
+            )}
+            {b.kind === 'urchin' && (
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <polygon points={URCHIN} />
+                <circle cx="9.5" cy="10" r="1.3" className="ag-urchin-eye" />
+                <circle cx="14.5" cy="10" r="1.3" className="ag-urchin-eye" />
               </svg>
             )}
           </button>
@@ -190,7 +246,7 @@ function BubbleRush() {
         {pops.map((p) => (
           <span key={p.id} className={`ag-pop ag-pop--${p.kind}`} style={{ left: p.x, top: p.y, '--s': `${p.size}px` }}>
             <i />
-            <em>+{p.points}</em>
+            <em>{p.label}</em>
           </span>
         ))}
 
@@ -198,7 +254,8 @@ function BubbleRush() {
           <div className="ag-overlay">
             <p className="ag-overlay-title">Revienta todas las que puedas</p>
             <p className="ag-overlay-text">
-              Tienes {RUSH_SECONDS} segundos. Las normales valen 1, las chiquitas 2 y las de corazón 3.
+              {RUSH_SECONDS} segundos y cada vez suben más rápido. Normales 1, chiquitas 2, corazones 3. Revienta seguido
+              para hacer racha (x2, x3)… pero no toques los erizos: restan 3 y rompen la racha.
             </p>
             <button type="button" className="aero-btn aero-btn--green aero-btn--big" onClick={start}>
               Empezar
@@ -228,38 +285,63 @@ function BubbleRush() {
 const MEMORY_PHOTOS = [
   './timeline/005.jpeg',
   './timeline/012.jpeg',
+  './timeline/015.jpeg',
   './timeline/022.jpeg',
   './timeline/033.jpeg',
   './timeline/048.jpeg',
+  './timeline/054.jpeg',
   './timeline/062.jpeg',
 ];
-const MEMORY_BEST_KEY = 'abby-aero-memory-best';
+const MEMORY_SECONDS = 60;
+const MEMORY_BEST_KEY = 'abby-aero-memory-best-v2';
 
 function Memory() {
   const [cards, setCards] = useState([]);
   const [open, setOpen] = useState([]);
   const [matched, setMatched] = useState(() => new Set());
   const [moves, setMoves] = useState(0);
+  const [left, setLeft] = useState(MEMORY_SECONDS);
   const [phase, setPhase] = useState('ready');
   const [best, setBest] = useState(() => loadBest(MEMORY_BEST_KEY));
   const [isRecord, setIsRecord] = useState(false);
   const lockRef = useRef(false);
+  const timerRef = useRef(0);
+
+  const stopTimer = () => clearInterval(timerRef.current);
+  useEffect(() => stopTimer, []);
 
   const start = () => {
-    setCards(shuffle(MEMORY_PHOTOS.flatMap((src, pair) => [
-      { key: `${pair}a`, pair, src },
-      { key: `${pair}b`, pair, src },
-    ])));
+    setCards(
+      shuffle(
+        MEMORY_PHOTOS.flatMap((src, pair) => [
+          { key: `${pair}a`, pair, src },
+          { key: `${pair}b`, pair, src },
+        ])
+      )
+    );
     setOpen([]);
     setMatched(new Set());
     setMoves(0);
+    setLeft(MEMORY_SECONDS);
     setIsRecord(false);
     lockRef.current = false;
     setPhase('playing');
+
+    stopTimer();
+    const endsAt = Date.now() + MEMORY_SECONDS * 1000;
+    timerRef.current = setInterval(() => {
+      const remaining = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+      setLeft(remaining);
+      if (remaining === 0) {
+        stopTimer();
+        lockRef.current = true;
+        setPhase('lost');
+      }
+    }, 200);
   };
 
   const flip = (i) => {
-    if (lockRef.current || open.includes(i) || matched.has(cards[i].pair)) return;
+    if (phase !== 'playing' || lockRef.current || open.includes(i) || matched.has(cards[i].pair)) return;
     const next = [...open, i];
     setOpen(next);
     if (next.length < 2) return;
@@ -272,8 +354,10 @@ function Memory() {
       setMatched(done);
       setOpen([]);
       if (done.size === MEMORY_PHOTOS.length) {
+        stopTimer();
+        lockRef.current = true;
         setTimeout(() => {
-          setPhase('done');
+          setPhase('won');
           if (!best || total < best) {
             saveBest(MEMORY_BEST_KEY, total);
             setBest(total);
@@ -286,7 +370,7 @@ function Memory() {
       setTimeout(() => {
         setOpen([]);
         lockRef.current = false;
-      }, 850);
+      }, 650);
     }
   };
 
@@ -294,12 +378,15 @@ function Memory() {
     <div className="ag-memory">
       <div className="ag-hud">
         <span className="ag-chip">
-          <b>{matched.size}</b> de {MEMORY_PHOTOS.length} parejas
+          <b>{matched.size}</b> de {MEMORY_PHOTOS.length}
         </span>
         <span className="ag-chip">
           <b>{moves}</b> intentos
         </span>
-        <span className="ag-chip ag-chip--soft">récord {best ?? '—'}</span>
+        <span className={`ag-chip${phase === 'playing' && left <= 10 ? ' is-hurry' : ''}`}>
+          <b>{left}</b> s
+        </span>
+        <span className="ag-chip ag-chip--soft">récord {best ? `${best} intentos` : '—'}</span>
       </div>
 
       <div className="ag-board-wrap">
@@ -335,7 +422,8 @@ function Memory() {
           <div className="ag-overlay">
             <p className="ag-overlay-title">Encuentra nuestras parejas</p>
             <p className="ag-overlay-text">
-              Doce cartas, seis fotos nuestras. Voltea dos a la vez y encuentra las que van juntas, como nosotros.
+              Dieciséis cartas, ocho fotos nuestras y {MEMORY_SECONDS} segundos. Voltea dos a la vez y encuentra las que
+              van juntas, como nosotros.
             </p>
             <button type="button" className="aero-btn aero-btn--green aero-btn--big" onClick={start}>
               Empezar
@@ -343,7 +431,7 @@ function Memory() {
           </div>
         )}
 
-        {phase === 'done' && (
+        {phase === 'won' && (
           <div className="ag-overlay">
             <p className="ag-overlay-kicker">{isRecord ? '¡nuevo récord!' : '¡las encontraste todas!'}</p>
             <p className="ag-overlay-score">{moves}</p>
@@ -352,6 +440,19 @@ function Memory() {
             </p>
             <button type="button" className="aero-btn aero-btn--green aero-btn--big" onClick={start}>
               Jugar otra vez
+            </button>
+          </div>
+        )}
+
+        {phase === 'lost' && (
+          <div className="ag-overlay">
+            <p className="ag-overlay-kicker">se acabó el tiempo</p>
+            <p className="ag-overlay-score ag-overlay-score--soft">
+              {matched.size}/{MEMORY_PHOTOS.length}
+            </p>
+            <p className="ag-overlay-text">Casi. Las fotos no se van a ningún lado, y yo tampoco. ¿Otra?</p>
+            <button type="button" className="aero-btn aero-btn--green aero-btn--big" onClick={start}>
+              Intentar otra vez
             </button>
           </div>
         )}
@@ -368,13 +469,13 @@ const GAMES = [
   {
     id: 'rush',
     title: 'Revienta burbujas',
-    text: '30 segundos, todas las burbujas que puedas.',
+    text: '30 segundos, rachas y erizos tramposos.',
     Component: BubbleRush,
   },
   {
     id: 'memory',
     title: 'Memoria',
-    text: 'Encuentra las parejas de nuestras fotos.',
+    text: '8 parejas de nuestras fotos en 60 segundos.',
     Component: Memory,
   },
 ];

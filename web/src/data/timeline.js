@@ -1,7 +1,7 @@
 /* Línea del tiempo — fotos reales, ordenadas de la más antigua a la más
    nueva usando el orden de exportación de WhatsApp (que conserva el orden
    cronológico real de los mensajes) más un par de fechas confirmadas por
-   capturas de pantalla (30 de agosto y 13 de septiembre).
+   capturas de pantalla (23 de agosto y 13 de septiembre).
 
    Las 66 fotos originales están todas en /timeline/001.jpeg ... /timeline/066.jpeg
    por si quieres agregar más entradas o cambiar la foto de alguna — esto es
@@ -17,11 +17,11 @@ export const TIMELINE = [
   {
     date: 'Una noche de lago',
     title: 'Paseo en bote',
-    text: 'Luces en el agua, un peluche de rana de copiloto y mucho frío.',
+    text: 'Luces en el agua, Rex, el dinosaurio de peluche, de copiloto y mucho frío.',
     image: './timeline/008.jpeg',
   },
   {
-    date: '30 de agosto',
+    date: '23 de agosto',
     title: 'Las primeras flores',
     text: 'Las primeras flores que te dio — así las describiste tú misma.',
     image: './timeline/017.jpeg',
