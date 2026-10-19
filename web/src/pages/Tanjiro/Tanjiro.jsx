@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Reveal from '../../components/Reveal';
 import { restartFromGate } from '../../components/Gate/restart';
 import { usePlayer } from '../../context/PlayerContext';
-import { TANJIRO_GALLERY, TANJIRO_SONG, TANJIRO_TRAITS } from '../../data/tanjiro';
+import { TANJIRO_GALLERY, TANJIRO_PHOTOS, TANJIRO_SONG, TANJIRO_TRAITS } from '../../data/tanjiro';
 import SlashGame from './SlashGame';
 import { KatanaMeter, SwordTrail } from './TanjiroFx';
 import './Tanjiro.css';
@@ -58,6 +58,9 @@ function TraitCard({ trait, index }) {
       {flips > 0 && <span key={flips} className={`tj-trait-cut${flipped ? ' is-fire' : ''}`} aria-hidden="true" />}
       <span className="tj-trait-inner">
         <span className="tj-trait-face tj-trait-front" aria-hidden="true">
+          <span className="tj-trait-photo">
+            <img src={trait.image} alt="" loading="lazy" />
+          </span>
           <span className="tj-trait-num">0{index + 1}</span>
           <span className="tj-trait-title">{trait.title}</span>
           <span className="tj-trait-text">{trait.front}</span>
@@ -190,7 +193,12 @@ export default function Tanjiro() {
         <div className="tj-checker tj-checker--band" aria-hidden="true" />
         <WavePattern id="tjWavesHero" />
         <p className="tj-kanji" aria-hidden="true">竈門炭治郎</p>
+        <img className="tj-hero-sticker" src={TANJIRO_PHOTOS.face} alt="" aria-hidden="true" />
         <div className="tj-hero-content">
+          <div className="tj-hero-portrait">
+            <img src={TANJIRO_PHOTOS.hero} alt="Tanjiro sonriendo" />
+            <span className="tj-hero-portrait-cut" aria-hidden="true" />
+          </div>
           <p className="tj-eyebrow">un rincón solo para ti</p>
           <h1 className="tj-title">
             <span className="tj-title-line">Tanjiro</span>
@@ -265,6 +273,16 @@ export default function Tanjiro() {
       <Reveal as="section" className="tj-fire">
         <div className="tj-fire-glow" aria-hidden="true" />
         <span className="tj-cut tj-cut--fire" aria-hidden="true" />
+        <div className="tj-polaroids" aria-hidden="true">
+          <figure className="tj-polaroid tj-polaroid--left">
+            <img src={TANJIRO_PHOTOS.together} alt="" loading="lazy" />
+            <figcaption>entre flores</figcaption>
+          </figure>
+          <figure className="tj-polaroid tj-polaroid--right">
+            <img src={TANJIRO_PHOTOS.couple} alt="" loading="lazy" />
+            <figcaption>como ellos dos</figcaption>
+          </figure>
+        </div>
         <p className="tj-eyebrow tj-eyebrow--warm">como una danza de fuego</p>
         <blockquote className="tj-quote">
           Dicen que su fuego nunca se apaga, aunque el camino se ponga difícil.

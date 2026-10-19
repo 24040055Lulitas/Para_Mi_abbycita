@@ -66,9 +66,223 @@
   color: #f6efe6;
 }
 
-.sg-legend-icon {
-  width: 44px;
-  height: 44px;
+.sg-legend-face,
+.sg-legend-svg {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.sg-legend-face {
+  object-fit: cover;
+  border: 3px solid #ff5468;
+}
+
+.sg-legend-face--gold {
+  border-color: #ffc14d;
+  box-shadow: 0 0 12px rgba(255, 193, 77, 0.6);
+}
+
+.sg-legend-face--safe {
+  border-color: #2fbf7a;
+}
+
+.sg-legend-face--boss {
+  border-color: #ffc14d;
+  box-shadow: 0 0 14px rgba(255, 84, 104, 0.7);
+}
+
+.sg-legend li:has(.sg-legend-face--boss) {
+  flex-basis: 100%;
+  justify-content: center;
+  color: #ffd9a0;
+}
+
+/* ---------- tarjeta de la sección: portada, lunas y botón ---------- */
+
+.sg-launch {
+  padding-top: 0;
+}
+
+.sg-banner {
+  position: relative;
+  margin: 12px -22px 18px;
+  height: clamp(170px, 34vw, 260px);
+}
+
+.sg-banner > img:first-child {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  -webkit-mask: linear-gradient(180deg, #000 55%, transparent);
+  mask: linear-gradient(180deg, #000 55%, transparent);
+}
+
+/* el chibi se asoma por la esquina */
+.sg-banner-chibi {
+  position: absolute;
+  right: 10px;
+  bottom: -26px;
+  width: clamp(70px, 16vw, 104px);
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.6));
+  animation: sgChibiBob 2.8s ease-in-out infinite;
+}
+
+@keyframes sgChibiBob {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50% { transform: translateY(-8px) rotate(3deg); }
+}
+
+.sg-row-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #ffc14d;
+}
+
+.sg-moons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 8px;
+  margin: 12px 0 18px;
+  padding: 0;
+  list-style: none;
+}
+
+.sg-moons li {
+  width: 76px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sg-moons img {
+  /* más grande cuanto más fuerte */
+  width: calc(64px - var(--rank) * 3px);
+  height: calc(64px - var(--rank) * 3px);
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #ffc14d;
+  box-shadow: 0 0 calc(22px - var(--rank) * 3px) rgba(255, 84, 104, 0.65);
+  transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.25, 1.5);
+}
+
+.sg-moons li:hover img {
+  transform: scale(1.12) rotate(-4deg);
+}
+
+.sg-moons-name {
+  margin-top: 6px;
+  font-weight: 700;
+  font-size: 12.5px;
+  color: #f6efe6;
+}
+
+.sg-moons-hp {
+  font-size: 11px;
+  color: #b7aea6;
+}
+
+/* ---------- elegir modo ---------- */
+
+.sg-modes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.sg-mode {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 92px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(127, 214, 255, 0.45);
+  background: linear-gradient(180deg, rgba(70, 150, 255, 0.18), rgba(20, 20, 25, 0.6));
+  color: #f6efe6;
+  font: inherit;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.sg-mode b {
+  font-weight: 900;
+  font-size: 18px;
+}
+
+.sg-mode span {
+  font-size: 12.5px;
+  color: #b7aea6;
+}
+
+.sg-mode--hard {
+  border-color: rgba(255, 193, 77, 0.55);
+  background: linear-gradient(180deg, rgba(255, 84, 104, 0.25), rgba(20, 20, 25, 0.6));
+}
+
+.sg-mode:hover {
+  transform: translateY(-2px);
+  border-color: #fff;
+}
+
+.sg-mode:focus-visible {
+  outline: 2px solid #2fbf7a;
+  outline-offset: 3px;
+}
+
+.sg-mode-faces {
+  display: flex;
+  margin-bottom: 2px;
+}
+
+.sg-mode-faces img {
+  width: 28px;
+  height: 28px;
+  margin-left: -6px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ffc14d;
+}
+
+.sg-mode-faces img:first-child {
+  margin-left: 0;
+}
+
+.sg-chip--gold {
+  border-color: #ffc14d;
+}
+
+.sg-chip--gold b {
+  color: #ffc14d;
+}
+
+.sg-defeated {
+  margin-top: 6px;
+  font-size: 14px;
+  color: #ffd9a0;
+}
+
+.sg-defeated b {
+  font-size: 18px;
+  color: #ffc14d;
+}
+
+.sg-panel-sticker {
+  position: absolute;
+  top: -54px;
+  right: -12px;
+  width: 92px;
+  transform: rotate(10deg);
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.6));
+  pointer-events: none;
 }
 
 /* ---------- botones ---------- */
@@ -337,6 +551,34 @@
     font-size: 27px;
   }
 
+  .sg-banner {
+    margin: 12px -14px 18px;
+  }
+
+  .sg-moons li {
+    width: 64px;
+  }
+
+  .sg-modes {
+    grid-template-columns: 1fr;
+  }
+
+  .sg-mode {
+    min-height: 76px;
+  }
+
+  .sg-panel {
+    max-height: calc(100dvh - 120px);
+    overflow-y: auto;
+  }
+
+  /* el panel hace scroll en celular: el sticker va adentro para no cortarse */
+  .sg-panel-sticker {
+    width: 56px;
+    top: 8px;
+    right: 8px;
+  }
+
   .sg-actions .sg-btn {
     width: 100%;
   }
@@ -345,7 +587,8 @@
 @media (prefers-reduced-motion: reduce) {
   .sg-chip.is-hurry,
   .sg-panel,
-  .sg-overlay {
+  .sg-overlay,
+  .sg-banner-chibi {
     animation: none;
   }
 }
