@@ -16,10 +16,87 @@ const BLADE_LIFE = 160;
 /* tiempo mínimo entre dos golpes a una Luna Superior, en ms */
 const BOSS_HIT_GAP = 110;
 
-const MODES = {
-  normal: { id: 'normal', label: 'Normal', seconds: 45, bestKey: 'abby-tanjiro-slash-best', bosses: false },
-  hard: { id: 'hard', label: 'Difícil', seconds: 90, bestKey: 'abby-tanjiro-slash-hard-best', bosses: true },
+/* cada modo ajusta la partida:
+   speed      → qué tan rápido caen los demonios
+   spawn      → multiplica el tiempo entre oleadas (menos = más seguido)
+   villagers  → probabilidad extra de que salgan aldeanos
+   timeItems  → multiplica cuántos relojes de arena salen
+   bossHp / bossTime / bossSpeed → vida, segundos antes de escapar y
+                velocidad de las Lunas Superiores
+   firstBoss / bossGap → segundos hasta la primera y entre una y otra */
+const BASE = {
+  bosses: false,
+  speed: 1,
+  spawn: 1,
+  villagers: 0,
+  timeItems: 1,
+  bossHp: 1,
+  bossTime: 1,
+  bossSpeed: 1,
+  firstBoss: 5,
+  bossGap: 3,
 };
+
+const MODES = {
+  normal: {
+    ...BASE,
+    id: 'normal',
+    label: 'Normal',
+    seconds: 45,
+    level: 1,
+    hint: 'Lunas Inferiores',
+    bestKey: 'abby-tanjiro-slash-best',
+  },
+  hard: {
+    ...BASE,
+    id: 'hard',
+    label: 'Difícil',
+    seconds: 90,
+    level: 2,
+    hint: 'Lunas Superiores, una por una',
+    bestKey: 'abby-tanjiro-slash-hard-best',
+    bosses: true,
+  },
+  pillar: {
+    ...BASE,
+    id: 'pillar',
+    label: 'Pilar',
+    seconds: 60,
+    level: 3,
+    hint: 'más rápido, lunas más duras',
+    bestKey: 'abby-tanjiro-slash-pillar-best',
+    bosses: true,
+    speed: 1.2,
+    spawn: 0.8,
+    villagers: 0.06,
+    timeItems: 0.8,
+    bossHp: 1.15,
+    bossTime: 0.75,
+    bossSpeed: 1.2,
+    firstBoss: 3,
+    bossGap: 1.6,
+  },
+  castle: {
+    ...BASE,
+    id: 'castle',
+    label: 'Castillo Infinito',
+    seconds: 30,
+    level: 4,
+    hint: '30 s, sin respiro',
+    bestKey: 'abby-tanjiro-slash-castle-best',
+    bosses: true,
+    speed: 1.4,
+    spawn: 0.65,
+    villagers: 0.12,
+    timeItems: 0.5,
+    bossHp: 1.25,
+    bossTime: 0.6,
+    bossSpeed: 1.45,
+    firstBoss: 1.2,
+    bossGap: 0.8,
+  },
+};
+const MODE_LIST = Object.values(MODES);
 
 const RING = {
   oni: '#ff5468',
@@ -50,8 +127,14 @@ function saveBest(key, value) {
   }
 }
 
-function resultMessage(modeId, score, defeated) {
-  if (modeId === 'hard') {
+function resultMessage(mode, score, defeated) {
+  if (mode.id === 'castle') {
+    if (defeated >= BOSS_TOTAL) return 'Saliste viva del Castillo Infinito con todas las Lunas vencidas. Leyenda.';
+    if (defeated >= 3) return 'En 30 segundos y en el Castillo Infinito. Eso ya es de Pilar.';
+    if (defeated >= 1) return 'Sobreviviste al Castillo Infinito y todavía cortaste Lunas. Increíble.';
+    return 'El Castillo Infinito no perdona. Ni Tanjiro lo logró a la primera. ¿Otra?';
+  }
+  if (mode.bosses) {
     if (defeated >= BOSS_TOTAL) return 'Derrotaste a todas las Lunas Superiores. Ni Muzan se atrevería contigo.';
     if (defeated >= 4) return 'Varias Lunas Superiores cayeron por tu espada. Nivel Pilar, sin duda.';
     if (defeated >= 1) return 'Le ganaste a una Luna Superior. Eso no lo hace cualquiera.';
@@ -322,7 +405,8 @@ function SlashArena({ bests, onBest, onClose }) {
 
     const launch = (kind) => {
       const p = progress();
-      const grav = g.h * (1.45 + p * 0.6);
+      /* gravedad × velocidad² hace que todo el vuelo sea "speed" veces más rápido */
+      const grav = g.h * (1.45 + p * 0.6) * g.mode.speed * g.mode.speed;
       const r = kind === 'enmu' ? g.size * 0.85 : kind === 'time' ? g.size * 0.78 : g.size;
       const x = g.w * (0.12 + Math.random() * 0.76);
       const peak = g.h * (0.5 + Math.random() * 0.32);
@@ -352,10 +436,11 @@ function SlashArena({ bests, onBest, onClose }) {
       const count = 1 + Math.floor(Math.random() * (1.4 + p * 3.2) * calm);
       for (let i = 0; i < count; i++) {
         const r = Math.random();
+        const v = 0.1 + p * 0.12 + g.mode.villagers;
         let kind = 'oni';
-        if (r < 0.1 + p * 0.12) kind = 'villager';
-        else if (r < 0.17 + p * 0.12) kind = 'enmu';
-        else if (r < 0.21 + p * 0.12 && g.elapsed > 8) kind = 'time';
+        if (r < v) kind = 'villager';
+        else if (r < v + 0.07) kind = 'enmu';
+        else if (r < v + 0.07 + 0.04 * g.mode.timeItems && g.elapsed > Math.min(8, g.mode.seconds * 0.25)) kind = 'time';
         g.queue.push({ at: g.elapsed + i * (0.18 - p * 0.08), kind });
       }
     };
@@ -413,19 +498,21 @@ function SlashArena({ bests, onBest, onClose }) {
     const spawnBoss = (index, at = null) => {
       const def = UPPER_MOONS[index];
       const r = Math.max(56, Math.min(98, Math.min(g.w, g.h) * 0.14));
+      const hp = Math.round(def.hp * g.mode.bossHp);
       g.boss = {
         def,
         kind: 'boss',
         img: getImage(def.src),
         r,
-        hp: def.hp,
-        max: def.hp,
+        hp,
+        max: hp,
+        time: def.time * g.mode.bossTime,
         x: at ? at.x : g.w / 2,
         y: at ? at.y : g.h + r * 1.6,
         homeY: g.h * 0.36,
         state: at ? 'fight' : 'enter',
         t: 0,
-        life: def.time,
+        life: def.time * g.mode.bossTime,
         lastHit: 0,
         hitFlash: 0,
         kx: 0,
@@ -457,7 +544,7 @@ function SlashArena({ bests, onBest, onClose }) {
         setScore(g.score);
         popup(g.w / 2, g.h * 0.5, '¡Todas las Lunas Superiores! +50', '#7fd6ff', 2.2, true);
       } else {
-        g.bossTimer = 3;
+        g.bossTimer = g.mode.bossGap;
       }
     };
 
@@ -503,7 +590,7 @@ function SlashArena({ bests, onBest, onClose }) {
         if (g.playing) b.life -= dt;
         /* con poca vida se mueve más rápido */
         const rage = b.hp / b.max < 0.4 ? 1.45 : 1;
-        const sp = b.def.speed * rage;
+        const sp = b.def.speed * g.mode.bossSpeed * rage;
         const tx = g.w / 2 + Math.sin(b.t * 0.95 * sp) * g.w * 0.3;
         const ty = b.homeY + Math.sin(b.t * 1.7 * sp) * g.h * 0.11;
         b.x += (tx - b.x) * Math.min(1, dt * 5);
@@ -516,7 +603,7 @@ function SlashArena({ bests, onBest, onClose }) {
         b.y -= g.h * 1.3 * dt;
         if (b.y < -b.r * 2.5) {
           g.boss = null;
-          g.bossTimer = 2.5;
+          g.bossTimer = g.mode.bossGap;
         }
       }
     };
@@ -566,7 +653,7 @@ function SlashArena({ bests, onBest, onClose }) {
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
         ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.arc(0, 0, b.r + 9, -Math.PI / 2, -Math.PI / 2 + TAU * Math.max(0, b.life / b.def.time));
+        ctx.arc(0, 0, b.r + 9, -Math.PI / 2, -Math.PI / 2 + TAU * Math.max(0, b.life / b.time));
         ctx.stroke();
       }
 
@@ -673,7 +760,7 @@ function SlashArena({ bests, onBest, onClose }) {
         strokeHits: 0,
         boss: null,
         bossQueue: mode.bosses ? [...BOSS_ORDER] : [],
-        bossTimer: 5,
+        bossTimer: mode.firstBoss,
         pendingBoss: null,
         banner: null,
         defeated: 0,
@@ -800,7 +887,7 @@ function SlashArena({ bests, onBest, onClose }) {
         g.spawnIn -= dt;
         if (g.spawnIn <= 0) {
           spawnWave();
-          g.spawnIn = (1.2 - progress() * 0.65 + Math.random() * 0.25) * (g.boss ? 1.6 : 1);
+          g.spawnIn = (1.2 - progress() * 0.65 + Math.random() * 0.25) * (g.boss ? 1.6 : 1) * g.mode.spawn;
         }
         while (g.queue.length && g.queue[0].at <= g.elapsed) launch(g.queue.shift().kind);
         const shown = Math.max(0, Math.ceil(g.timeLeft));
@@ -941,21 +1028,28 @@ function SlashArena({ bests, onBest, onClose }) {
           </p>
           <Legend hard />
           <div className="sg-modes">
-            <button type="button" className="sg-mode" onClick={() => startGame('normal')}>
-              <b>Normal</b>
-              <span>45 s · Lunas Inferiores</span>
-            </button>
-            <button type="button" className="sg-mode sg-mode--hard" onClick={() => startGame('hard')}>
-              <span className="sg-mode-faces" aria-hidden="true">
-                {UPPER_MOONS.filter((u) => !u.phase)
-                  .slice(-3)
-                  .map((u) => (
-                    <img key={u.name} src={u.src} alt="" />
+            {MODE_LIST.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                className={`sg-mode sg-mode--${m.id}`}
+                onClick={() => startGame(m.id)}
+                aria-label={`${m.label}: ${m.seconds} segundos, ${m.hint}. Dificultad ${m.level} de 4`}
+              >
+                <span className="sg-mode-level" aria-hidden="true">
+                  {Array.from({ length: 4 }, (_, i) => (
+                    <svg key={i} viewBox="0 0 24 24" className={i < m.level ? 'is-on' : ''}>
+                      <path d="M12 2c1 4 6 6 6 12a6 6 0 0 1-12 0c0-3 2-5 3-7 0 3 2 4 3 4-1-3-1-6 0-9z" />
+                    </svg>
                   ))}
-              </span>
-              <b>Difícil</b>
-              <span>90 s · Lunas Superiores, una por una</span>
-            </button>
+                </span>
+                <b>{m.label}</b>
+                <span>
+                  {m.seconds} s · {m.hint}
+                </span>
+                {bests[m.id] != null && <span className="sg-mode-best">récord {bests[m.id]}</span>}
+              </button>
+            ))}
           </div>
         </div>
       )}
@@ -970,7 +1064,7 @@ function SlashArena({ bests, onBest, onClose }) {
               Lunas Superiores vencidas: <b>{defeated}</b> de {BOSS_TOTAL}
             </p>
           )}
-          <p className="sg-text">{resultMessage(modeId, score, defeated)}</p>
+          <p className="sg-text">{resultMessage(mode, score, defeated)}</p>
           <div className="sg-actions">
             <button type="button" className="sg-btn" onClick={() => startGame(modeId)}>
               Otra ronda
@@ -989,10 +1083,7 @@ function SlashArena({ bests, onBest, onClose }) {
 
 export default function SlashGame() {
   const [open, setOpen] = useState(false);
-  const [bests, setBests] = useState(() => ({
-    normal: loadBest(MODES.normal.bestKey),
-    hard: loadBest(MODES.hard.bestKey),
-  }));
+  const [bests, setBests] = useState(() => Object.fromEntries(MODE_LIST.map((m) => [m.id, loadBest(m.bestKey)])));
   const close = useCallback(() => setOpen(false), []);
   const onBest = useCallback((id, value) => setBests((b) => ({ ...b, [id]: value })), []);
 
@@ -1009,7 +1100,7 @@ export default function SlashGame() {
           <img className="sg-banner-chibi" src={TANJIRO_PHOTOS.chibi} alt="" loading="lazy" />
         </div>
 
-        <p className="sg-row-label">Lunas Superiores · modo difícil</p>
+        <p className="sg-row-label">Lunas Superiores · Difícil, Pilar y Castillo Infinito</p>
         <ul className="sg-moons">
           {UPPER_MOONS.map((u) => (
             <li key={u.name} style={{ '--rank': u.rank }}>
@@ -1027,9 +1118,14 @@ export default function SlashGame() {
           </svg>
           Jugar
         </button>
-        <p className="sg-launch-best">
-          récord normal: {bests.normal ?? '—'} · difícil: {bests.hard ?? '—'}
-        </p>
+        <ul className="sg-launch-records">
+          {MODE_LIST.map((m) => (
+            <li key={m.id}>
+              <span>{m.label}</span>
+              <b>{bests[m.id] ?? '—'}</b>
+            </li>
+          ))}
+        </ul>
       </div>
 
       {/* portal: Reveal usa transform, que atraparía a un position:fixed */}
