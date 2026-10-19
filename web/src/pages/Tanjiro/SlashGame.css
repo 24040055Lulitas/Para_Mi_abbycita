@@ -412,8 +412,73 @@
   overflow-y: auto;
 }
 
+/* el botón de entrar siempre a la vista aunque el panel haga scroll */
 .sg-start {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  width: 100%;
   margin-top: 4px;
+  box-shadow: 0 -12px 24px rgba(20, 20, 25, 0.95), 0 14px 34px rgba(255, 84, 104, 0.35);
+}
+
+.sg-chip--muzan {
+  border-color: #ff1f3d;
+  color: #ff8a96;
+  font-weight: 900;
+  animation: sgPulse 0.6s ease-in-out infinite alternate;
+}
+
+/* aviso del jefe final */
+.sg-muzan {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 31, 61, 0.4);
+  background: linear-gradient(90deg, rgba(120, 0, 20, 0.35), rgba(20, 20, 25, 0.4));
+  text-align: left;
+}
+
+.sg-muzan img {
+  width: 54px;
+  height: 54px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #9b1030;
+  box-shadow: 0 0 16px rgba(255, 31, 61, 0.55);
+}
+
+.sg-muzan b {
+  color: #ff8a96;
+}
+
+.sg-muzan p > b {
+  display: block;
+  font-size: 14px;
+}
+
+.sg-muzan span {
+  display: block;
+  margin-top: 2px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #b7aea6;
+}
+
+.sg-muzan-trophy {
+  display: block;
+  width: 76px;
+  height: 76px;
+  margin: 10px auto 0;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #ffc14d;
+  box-shadow: 0 0 24px rgba(255, 193, 77, 0.6);
+  filter: grayscale(0.6);
 }
 
 .sg-mode:focus-visible {
@@ -512,6 +577,9 @@
   inset: 0;
   z-index: 96;
   overflow: hidden;
+  /* en celular: que deslizar no mueva la página ni haga zoom */
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
   font-family: 'Manrope', sans-serif;
   color: #f6efe6;
   animation: sgFadeIn 0.3s ease both;
@@ -556,6 +624,7 @@
   cursor: crosshair;
   user-select: none;
   -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .sg-hud {
@@ -720,6 +789,31 @@
     margin: 12px -14px 18px;
   }
 
+  /* marcador compacto: más espacio para cortar */
+  .sg-hud {
+    left: 10px;
+    gap: 6px;
+  }
+
+  .sg-chip {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+
+  .sg-chip b {
+    font-size: 15px;
+  }
+
+  .sg-hud .sg-chip--soft {
+    display: none;
+  }
+
+  .sg-close {
+    right: 10px;
+    width: 42px;
+    height: 42px;
+  }
+
   .sg-moons li {
     width: 64px;
   }
@@ -764,7 +858,8 @@
   .sg-overlay,
   .sg-banner-chibi,
   .sg-mode--castle,
-  .sg-moons-hp b {
+  .sg-moons-hp b,
+  .sg-chip--muzan {
     animation: none;
   }
 }

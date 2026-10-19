@@ -96,11 +96,25 @@ export const VILLAGERS = [
    segundos antes de escapar. Daki y Gyutaro son la Sexta: al vencer a
    Daki aparece su hermano. */
 export const UPPER_MOONS = [
-  { name: 'Daki', rank: 6, kanji: '上弦の陸', hp: 6, time: 9, points: 10, speed: 0.8, src: face('daki'), then: 1 },
-  { name: 'Gyutaro', rank: 6, kanji: '上弦の陸', hp: 9, time: 9, points: 20, speed: 1, src: face('gyutaro'), phase: true },
-  { name: 'Gyokko', rank: 5, kanji: '上弦の伍', hp: 11, time: 10, points: 25, speed: 1.05, src: face('gyokko') },
-  { name: 'Hantengu', rank: 4, kanji: '上弦の肆', hp: 13, time: 10, points: 30, speed: 1.15, src: face('hantengu') },
-  { name: 'Akaza', rank: 3, kanji: '上弦の参', hp: 16, time: 11, points: 40, speed: 1.3, src: face('akaza') },
-  { name: 'Doma', rank: 2, kanji: '上弦の弐', hp: 19, time: 12, points: 50, speed: 1.4, src: face('doma') },
-  { name: 'Kokushibo', rank: 1, kanji: '上弦の壱', hp: 24, time: 13, points: 70, speed: 1.55, src: face('kokushibo') },
+  { name: 'Daki', rank: 6, hp: 6, time: 9, points: 10, speed: 0.8, src: face('daki'), then: 1 },
+  { name: 'Gyutaro', rank: 6, hp: 9, time: 9, points: 20, speed: 1, src: face('gyutaro'), phase: true },
+  { name: 'Gyokko', rank: 5, hp: 11, time: 10, points: 25, speed: 1.05, src: face('gyokko') },
+  { name: 'Hantengu', rank: 4, hp: 13, time: 10, points: 30, speed: 1.15, src: face('hantengu') },
+  { name: 'Akaza', rank: 3, hp: 16, time: 11, points: 40, speed: 1.3, src: face('akaza') },
+  { name: 'Doma', rank: 2, hp: 19, time: 12, points: 50, speed: 1.4, src: face('doma') },
+  { name: 'Kokushibo', rank: 1, hp: 24, time: 13, points: 70, speed: 1.55, src: face('kokushibo') },
 ];
+
+/* jefe final: solo aparece si vences a todas las Lunas Superiores sin
+   que ninguna escape. A la mitad de su vida pasa a su forma final;
+   si dejas de cortarlo, se regenera. */
+export const MUZAN = {
+  name: 'Muzan Kibutsuji',
+  title: 'el Rey de los Demonios',
+  hp: 40,
+  time: 24,
+  points: 150,
+  speed: 1.35,
+  src: face('muzan'),
+  finalSrc: face('muzan-final'),
+};

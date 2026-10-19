@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Reveal from '../../components/Reveal';
-import { ENMU, LOWER_MOONS, TANJIRO_PHOTOS, UPPER_MOONS, VILLAGERS } from '../../data/tanjiro';
+import { ENMU, LOWER_MOONS, MUZAN, TANJIRO_PHOTOS, UPPER_MOONS, VILLAGERS } from '../../data/tanjiro';
 import './SlashGame.css';
 
 /* =========================================================
@@ -15,6 +15,9 @@ const TAU = Math.PI * 2;
 const BLADE_LIFE = 160;
 /* tiempo mínimo entre dos golpes a una Luna Superior, en ms */
 const BOSS_HIT_GAP = 110;
+/* margen extra al detectar un corte: en celular el dedo tapa parte del
+   demonio, así que se perdona un poco */
+const HIT_SLACK = window.matchMedia?.('(pointer: coarse)').matches ? 1.22 : 1.08;
 
 /* cada modo ajusta la partida:
    speed      → qué tan rápido caen los demonios
@@ -139,7 +142,13 @@ function saveBest(key, value) {
   }
 }
 
-function resultMessage(mode, score, defeated) {
+function resultMessage(mode, score, defeated, muzan) {
+  if (muzan === 'defeated') {
+    return mode.id === 'castle'
+      ? 'Venciste a Muzan en el Castillo Infinito. No hay nada más difícil que eso: eres la mejor cazadora de demonios.'
+      : 'Venciste a Muzan Kibutsuji. Tanjiro, los Pilares y yo estamos orgullosísimos de ti.';
+  }
+  if (muzan === 'escaped') return 'Llegaste hasta Muzan y lo hiciste huir. Casi nadie llega tan lejos. ¿La revancha?';
   if (mode.id === 'castle') {
     if (defeated >= BOSS_TOTAL) return 'Saliste viva del Castillo Infinito con todas las Lunas vencidas. Leyenda.';
     if (defeated >= 3) return 'En 30 segundos y en el Castillo Infinito. Eso ya es de Pilar.';
@@ -352,6 +361,23 @@ function ModeDetails({ mode }) {
         En total <b>{totalCuts(mode)}</b> cortes
         {mode.bossBonus ? ` · +${mode.bossBonus} s por cada Luna vencida` : ''}
       </p>
+      <MuzanTeaser mode={mode} />
+    </div>
+  );
+}
+
+/* el jefe final, para que sepa que existe */
+function MuzanTeaser({ mode }) {
+  return (
+    <div className="sg-muzan">
+      <img src={MUZAN.src} alt="" loading="lazy" />
+      <p>
+        <b>Jefe final: Muzan</b>
+        <span>
+          Si vences a las 7 sin que ninguna escape, aparece con <b>{Math.round(MUZAN.hp * mode.bossHp)}</b> cortes. A
+          la mitad cambia de forma y, si dejas de cortarlo, se regenera.
+        </span>
+      </p>
     </div>
   );
 }
@@ -370,6 +396,8 @@ function SlashArena({ bests, onBest, onClose }) {
   const [score, setScore] = useState(0);
   const [left, setLeft] = useState(MODES.normal.seconds);
   const [defeated, setDefeated] = useState(0);
+  /* null | 'fight' | 'defeated' | 'escaped' */
+  const [muzan, setMuzan] = useState(null);
   const [isRecord, setIsRecord] = useState(false);
 
   useEffect(() => {
@@ -420,7 +448,8 @@ function SlashArena({ bests, onBest, onClose }) {
       pendingBoss: null,
       banner: null,
       defeated: 0,
-      allClear: false,
+      escaped: 0,
+      muzanIn: 0,
     };
 
     const resize = () => {
@@ -549,32 +578,48 @@ function SlashArena({ bests, onBest, onClose }) {
 
     /* ---------- Lunas Superiores ---------- */
 
+    const bossRadius = (scale = 1) => Math.max(56, Math.min(98, Math.min(g.w, g.h) * 0.14)) * scale;
+
+    const newBoss = (def, hp, time, r, at) => ({
+      def,
+      kind: 'boss',
+      img: getImage(def.src),
+      r,
+      hp,
+      max: hp,
+      time,
+      x: at ? at.x : g.w / 2,
+      y: at ? at.y : g.h + r * 1.6,
+      homeY: Math.max(g.h * 0.36, r + 130),
+      state: at ? 'fight' : 'enter',
+      t: 0,
+      life: time,
+      lastHit: 0,
+      hitFlash: 0,
+      kx: 0,
+      ky: 0,
+      cuts: [],
+      regen: 0,
+    });
+
     const spawnBoss = (index, at = null) => {
       const def = UPPER_MOONS[index];
-      const r = Math.max(56, Math.min(98, Math.min(g.w, g.h) * 0.14));
-      const hp = bossHpFor(def, g.mode);
-      const time = bossTimeFor(def, g.mode);
-      g.boss = {
-        def,
-        kind: 'boss',
-        img: getImage(def.src),
-        r,
-        hp,
-        max: hp,
-        time,
-        x: at ? at.x : g.w / 2,
-        y: at ? at.y : g.h + r * 1.6,
-        homeY: g.h * 0.36,
-        state: at ? 'fight' : 'enter',
-        t: 0,
-        life: time,
-        lastHit: 0,
-        hitFlash: 0,
-        kx: 0,
-        ky: 0,
-        cuts: [],
-      };
-      g.banner = { kanji: def.kanji, title: def.name, sub: `Luna Superior ${def.rank}`, life: 1.9, max: 1.9 };
+      g.boss = newBoss(def, bossHpFor(def, g.mode), bossTimeFor(def, g.mode), bossRadius(), at);
+      g.banner = { title: def.name, sub: `Luna Superior ${def.rank}`, life: 1.9, max: 1.9 };
+    };
+
+    /* el jefe final: su pelea dura "hasta el amanecer" */
+    const spawnMuzan = () => {
+      const time = MUZAN.time * g.mode.bossTime;
+      g.boss = newBoss(MUZAN, Math.round(MUZAN.hp * g.mode.bossHp), time, bossRadius(1.18));
+      g.boss.isMuzan = true;
+      g.boss.final = false;
+      g.timeLeft = Math.max(g.timeLeft, time + 2);
+      g.banner = { title: MUZAN.name, sub: 'el Rey de los Demonios · jefe final', life: 2.6, max: 2.6, muzan: true };
+      g.flash = 0.8;
+      g.flashColor = '120, 0, 20';
+      g.shake = 0.5;
+      setMuzan('fight');
     };
 
     const defeatBoss = (b, ang) => {
@@ -586,24 +631,38 @@ function SlashArena({ bests, onBest, onClose }) {
       g.flashColor = '255, 230, 170';
       g.shake = 0.4;
       g.score += b.def.points;
-      g.defeated += 1;
       setScore(g.score);
+      g.boss = null;
+
+      if (b.isMuzan) {
+        burst(b.x, b.y, '#ffffff', 30, 1.8);
+        g.flash = 1;
+        g.shake = 0.7;
+        setMuzan('defeated');
+        popup(b.x, b.y - b.r * 0.4, `¡Derrotaste a Muzan! +${b.def.points}`, '#ffc14d', 2.6, true);
+        /* termina poco después, para que se vea la explosión */
+        g.timeLeft = Math.min(g.timeLeft, 2.6);
+        return;
+      }
+
+      g.defeated += 1;
       setDefeated(g.defeated);
       popup(b.x, b.y - b.r * 0.4, `¡${b.def.name} derrotado! +${b.def.points}`, '#ffc14d', 1.7, true);
       if (g.mode.bossBonus) {
         g.timeLeft += g.mode.bossBonus;
         popup(b.x, b.y + b.r * 0.3, `+${g.mode.bossBonus} s`, '#7fd6ff', 1.7, true);
       }
-      g.boss = null;
       if (b.def.then != null) {
         g.pendingBoss = { index: b.def.then, at: { x: b.x, y: b.y }, delay: 0.8 };
-      } else if (!g.bossQueue.length && !g.allClear) {
-        g.allClear = true;
+      } else if (g.bossQueue.length) {
+        g.bossTimer = g.mode.bossGap;
+      } else if (g.escaped === 0) {
+        /* todas vencidas y ninguna escapó: llega Muzan */
         g.score += 50;
         setScore(g.score);
         popup(g.w / 2, g.h * 0.5, '¡Todas las Lunas Superiores! +50', '#7fd6ff', 2.2, true);
-      } else {
-        g.bossTimer = g.mode.bossGap;
+        popup(g.w / 2, g.h * 0.5 + 40, 'algo se acerca…', '#ff5468', 2.2, true);
+        g.muzanIn = 2.4;
       }
     };
 
@@ -615,12 +674,30 @@ function SlashArena({ bests, onBest, onClose }) {
       b.kx += Math.cos(ang) * 16;
       b.ky += Math.sin(ang) * 16;
       b.cuts.push({ ang, off: (Math.random() - 0.5) * b.r * 0.9, life: 0.35 });
+      b.regen = 0;
       burst(b.x + b.kx, b.y + b.ky, Math.random() < 0.5 ? '#ffffff' : '#ff5468', 8, 0.8);
       g.shake = Math.max(g.shake, 0.12);
-      if (b.hp <= 0) defeatBoss(b, ang);
+      if (b.hp <= 0) {
+        defeatBoss(b, ang);
+        return;
+      }
+      /* a la mitad de su vida, Muzan pasa a su forma final */
+      if (b.isMuzan && !b.final && b.hp <= b.max / 2) {
+        b.final = true;
+        b.img = getImage(MUZAN.finalSrc);
+        g.banner = { title: 'Forma final', sub: MUZAN.name, life: 1.6, max: 1.6, muzan: true };
+        g.flash = 0.9;
+        g.flashColor = '200, 0, 30';
+        g.shake = 0.5;
+        burst(b.x, b.y, '#ff3b3b', 30, 1.5);
+      }
     };
 
     const updateBoss = (dt) => {
+      if (g.muzanIn > 0 && g.playing) {
+        g.muzanIn -= dt;
+        if (g.muzanIn <= 0) spawnMuzan();
+      }
       if (g.pendingBoss) {
         g.pendingBoss.delay -= dt;
         if (g.pendingBoss.delay <= 0) {
@@ -647,16 +724,33 @@ function SlashArena({ bests, onBest, onClose }) {
       } else if (b.state === 'fight') {
         b.t += dt;
         if (g.playing) b.life -= dt;
-        /* con poca vida se mueve más rápido */
+        /* con poca vida se mueve más rápido (y Muzan aún más en su forma final) */
         const rage = b.hp / b.max < 0.4 ? 1.45 : 1;
-        const sp = b.def.speed * g.mode.bossSpeed * rage;
+        const sp = b.def.speed * g.mode.bossSpeed * rage * (b.final ? 1.25 : 1);
         const tx = g.w / 2 + Math.sin(b.t * 0.95 * sp) * g.w * 0.3;
-        const ty = b.homeY + Math.sin(b.t * 1.7 * sp) * g.h * 0.11;
+        /* nunca tan arriba que la barra de vida tape el marcador */
+        const ty = Math.max(b.r + 110, b.homeY + Math.sin(b.t * 1.7 * sp) * g.h * 0.11);
         b.x += (tx - b.x) * Math.min(1, dt * 5);
         b.y += (ty - b.y) * Math.min(1, dt * 5);
+
+        /* Muzan se regenera si dejas de cortarlo un momento */
+        if (b.isMuzan && g.playing && performance.now() - b.lastHit > 900 && b.hp < b.max) {
+          b.regen += dt * (b.final ? 2.2 : 1.4);
+          while (b.regen >= 1 && b.hp < b.max) {
+            b.hp += 1;
+            b.regen -= 1;
+          }
+        }
+
         if (b.life <= 0 || !g.playing) {
           b.state = 'escape';
-          if (g.playing) popup(b.x, b.y, `${b.def.name} escapó…`, '#b7aea6', 1.4, true);
+          if (b.isMuzan) {
+            setMuzan('escaped');
+            if (g.playing) popup(b.x, b.y, 'Muzan huyó a las sombras…', '#b7aea6', 1.8, true);
+          } else if (g.playing) {
+            g.escaped += 1;
+            popup(b.x, b.y, `${b.def.name} escapó…`, '#b7aea6', 1.4, true);
+          }
         }
       } else if (b.state === 'escape') {
         b.y -= g.h * 1.3 * dt;
@@ -673,13 +767,14 @@ function SlashArena({ bests, onBest, onClose }) {
       const x = b.x + b.kx;
       const y = b.y + b.ky;
       const rage = b.hp / b.max < 0.4;
+      const ring = b.isMuzan ? (b.final ? '#ff1f3d' : '#9b1030') : rage ? '#ff5468' : RING.boss;
 
       ctx.save();
       ctx.translate(x, y);
-      const pulse = 1 + Math.sin(now / 170) * 0.035;
+      const pulse = 1 + Math.sin(now / (b.isMuzan ? 120 : 170)) * 0.035;
       ctx.shadowBlur = 34;
-      ctx.shadowColor = rage ? '#ff3b3b' : '#ffc14d';
-      drawFace(ctx, b.img, b.r * pulse, rage ? '#ff5468' : RING.boss, 0.09);
+      ctx.shadowColor = b.isMuzan || rage ? '#ff3b3b' : '#ffc14d';
+      drawFace(ctx, b.img, b.r * pulse, ring, b.isMuzan ? 0.11 : 0.09);
       ctx.shadowBlur = 0;
 
       /* golpe: destello blanco y marcas de corte sobre la cara */
@@ -694,14 +789,17 @@ function SlashArena({ bests, onBest, onClose }) {
       for (const c of b.cuts) {
         ctx.save();
         ctx.rotate(c.ang);
-        ctx.globalAlpha = c.life / 0.35;
-        ctx.strokeStyle = '#ffffff';
-        ctx.shadowBlur = 12;
-        ctx.shadowColor = '#7fd6ff';
-        ctx.lineWidth = 4;
+        const a = c.life / 0.35;
+        ctx.globalAlpha = a * 0.4;
+        ctx.strokeStyle = '#7fd6ff';
+        ctx.lineWidth = 12;
         ctx.beginPath();
         ctx.moveTo(-b.r, c.off);
         ctx.lineTo(b.r, c.off);
+        ctx.stroke();
+        ctx.globalAlpha = a;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 4;
         ctx.stroke();
         ctx.restore();
       }
@@ -716,26 +814,17 @@ function SlashArena({ bests, onBest, onClose }) {
         ctx.stroke();
       }
 
-      /* kanji del rango debajo */
-      ctx.font = `700 ${Math.round(b.r * 0.26)}px "Yu Mincho", "Hiragino Mincho ProN", "Noto Serif JP", serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      const kw = ctx.measureText(b.def.kanji).width + 16;
-      ctx.fillStyle = 'rgba(11, 11, 14, 0.85)';
-      ctx.fillRect(-kw / 2, b.r + 12, kw, b.r * 0.36);
-      ctx.fillStyle = '#ffc14d';
-      ctx.fillText(b.def.kanji, 0, b.r + 12 + b.r * 0.18);
       ctx.restore();
 
-      /* barra de vida y nombre */
-      const bw = Math.max(120, b.r * 2.3);
-      const bx = x - bw / 2;
-      const by = y - b.r - 26;
+      /* barra de vida y nombre (que no se salga de la pantalla en celular) */
+      const bw = Math.min(g.w - 24, Math.max(120, b.r * 2.3));
+      const bx = Math.max(12, Math.min(g.w - 12 - bw, x - bw / 2));
+      const by = Math.max(40, y - b.r - 26);
       ctx.fillStyle = 'rgba(11, 11, 14, 0.8)';
       ctx.fillRect(bx - 2, by - 2, bw + 4, 12);
       const hpGrad = ctx.createLinearGradient(bx, 0, bx + bw, 0);
-      hpGrad.addColorStop(0, '#ff3b3b');
-      hpGrad.addColorStop(1, '#ffc14d');
+      hpGrad.addColorStop(0, b.isMuzan ? '#7a1fff' : '#ff3b3b');
+      hpGrad.addColorStop(1, b.isMuzan ? '#ff1f3d' : '#ffc14d');
       ctx.fillStyle = hpGrad;
       ctx.fillRect(bx, by, bw * Math.max(0, b.hp / b.max), 8);
       ctx.font = '800 14px Manrope, sans-serif';
@@ -743,10 +832,20 @@ function SlashArena({ bests, onBest, onClose }) {
       ctx.textBaseline = 'bottom';
       ctx.lineWidth = 4;
       ctx.strokeStyle = 'rgba(10, 10, 14, 0.9)';
-      const label = `${b.def.name} · ${Math.max(0, b.hp)}/${b.max}`;
-      ctx.strokeText(label, x, by - 4);
+      const name = b.isMuzan ? 'Muzan' : b.def.name;
+      const label = `${name} · ${Math.max(0, b.hp)}/${b.max}`;
+      const lx = bx + bw / 2;
+      ctx.strokeText(label, lx, by - 4);
       ctx.fillStyle = '#f6efe6';
-      ctx.fillText(label, x, by - 4);
+      ctx.fillText(label, lx, by - 4);
+
+      if (b.isMuzan && b.regen > 0) {
+        ctx.textBaseline = 'top';
+        ctx.font = '800 13px Manrope, sans-serif';
+        ctx.strokeText('regenerándose… ¡no pares!', lx, by + 12);
+        ctx.fillStyle = '#7dffb0';
+        ctx.fillText('regenerándose… ¡no pares!', lx, by + 12);
+      }
     };
 
     const drawBanner = () => {
@@ -756,19 +855,19 @@ function SlashArena({ bests, onBest, onClose }) {
       const a = Math.min(1, t * 3, (1 - t) * 6);
       ctx.save();
       ctx.globalAlpha = a;
-      ctx.fillStyle = 'rgba(11, 11, 14, 0.55)';
+      ctx.fillStyle = bn.muzan ? 'rgba(40, 0, 8, 0.7)' : 'rgba(11, 11, 14, 0.55)';
       ctx.fillRect(0, g.h * 0.5 - 70, g.w, 140);
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.font = `700 ${Math.round(Math.min(56, g.w * 0.11))}px "Yu Mincho", "Hiragino Mincho ProN", "Noto Serif JP", serif`;
-      ctx.fillStyle = '#ffc14d';
+      ctx.font = `italic 700 ${Math.round(Math.min(54, g.w * 0.1))}px "Playfair Display", serif`;
+      ctx.fillStyle = bn.muzan ? '#ff4d63' : '#ffc14d';
       ctx.shadowBlur = 24;
-      ctx.shadowColor = '#ff5468';
-      ctx.fillText(bn.kanji, g.w / 2, g.h * 0.5 - 22);
+      ctx.shadowColor = bn.muzan ? '#ff0022' : '#ff5468';
+      ctx.fillText(bn.title, g.w / 2, g.h * 0.5 - 16);
       ctx.shadowBlur = 0;
-      ctx.font = '800 20px Manrope, sans-serif';
+      ctx.font = `800 ${Math.round(Math.min(18, g.w * 0.042))}px Manrope, sans-serif`;
       ctx.fillStyle = '#f6efe6';
-      ctx.fillText(`${bn.sub} · ${bn.title}`, g.w / 2, g.h * 0.5 + 30);
+      ctx.fillText(bn.sub, g.w / 2, g.h * 0.5 + 34);
       ctx.restore();
     };
 
@@ -791,6 +890,7 @@ function SlashArena({ bests, onBest, onClose }) {
       g.items = [];
       g.queue = [];
       g.pendingBoss = null;
+      g.muzanIn = 0;
       setLeft(0);
       const key = g.mode.id;
       if (g.score > 0 && (!bestsRef.current[key] || g.score > bestsRef.current[key])) {
@@ -823,11 +923,13 @@ function SlashArena({ bests, onBest, onClose }) {
         pendingBoss: null,
         banner: null,
         defeated: 0,
-        allClear: false,
+        escaped: 0,
+        muzanIn: 0,
       });
       setModeId(id);
       setScore(0);
       setDefeated(0);
+      setMuzan(null);
       setLeft(mode.seconds);
       setIsRecord(false);
       setPhase('playing');
@@ -873,16 +975,14 @@ function SlashArena({ bests, onBest, onClose }) {
         ctx.restore();
       }
 
+      /* sin shadowBlur: en celular es lo que más hace que el juego vaya lento */
       for (const s of g.sparks) {
         ctx.globalAlpha = Math.max(0, s.life / s.max);
         ctx.fillStyle = s.color;
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = s.color;
         ctx.beginPath();
         ctx.arc(s.x, s.y, s.size, 0, TAU);
         ctx.fill();
       }
-      ctx.shadowBlur = 0;
 
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -905,16 +1005,21 @@ function SlashArena({ bests, onBest, onClose }) {
           const a = g.blade[i - 1];
           const b = g.blade[i];
           const life = 1 - (now - b.t) / BLADE_LIFE;
+          /* brillo: una línea ancha y transparente debajo (más barato que shadowBlur) */
+          ctx.globalAlpha = life * 0.35;
+          ctx.strokeStyle = fire ? '#ff6428' : '#46b4ff';
+          ctx.lineWidth = 10 + life * 18;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
           ctx.globalAlpha = life;
-          ctx.shadowBlur = 18;
-          ctx.shadowColor = fire ? '#ff6428' : '#46b4ff';
           ctx.strokeStyle = fire ? '#ff9a50' : '#7fd6ff';
           ctx.lineWidth = 3 + life * 10;
           ctx.beginPath();
           ctx.moveTo(a.x, a.y);
           ctx.lineTo(b.x, b.y);
           ctx.stroke();
-          ctx.shadowBlur = 0;
           ctx.strokeStyle = '#fff';
           ctx.lineWidth = 1 + life * 3;
           ctx.beginPath();
@@ -1016,7 +1121,7 @@ function SlashArena({ bests, onBest, onClose }) {
       g.blade.push(p);
       if (!prev) return;
       for (const it of g.items) {
-        if (!it.dead && segmentDistance(it.x, it.y, prev.x, prev.y, p.x, p.y) < it.r * 1.05) {
+        if (!it.dead && segmentDistance(it.x, it.y, prev.x, prev.y, p.x, p.y) < it.r * HIT_SLACK) {
           slice(it, prev.x, prev.y, p.x, p.y);
         }
       }
@@ -1025,7 +1130,7 @@ function SlashArena({ bests, onBest, onClose }) {
         b &&
         b.state === 'fight' &&
         p.t - b.lastHit > BOSS_HIT_GAP &&
-        segmentDistance(b.x + b.kx, b.y + b.ky, prev.x, prev.y, p.x, p.y) < b.r
+        segmentDistance(b.x + b.kx, b.y + b.ky, prev.x, prev.y, p.x, p.y) < b.r * HIT_SLACK
       ) {
         hitBoss(b, prev.x, prev.y, p.x, p.y, p.t);
       }
@@ -1069,6 +1174,7 @@ function SlashArena({ bests, onBest, onClose }) {
             Lunas <b>{defeated}</b>/{BOSS_TOTAL}
           </span>
         )}
+        {muzan === 'fight' && phase === 'playing' && <span className="sg-chip sg-chip--muzan">Muzan</span>}
         <span className="sg-chip sg-chip--soft">récord {bests[modeId] ?? '—'}</span>
       </div>
 
@@ -1126,14 +1232,28 @@ function SlashArena({ bests, onBest, onClose }) {
       {phase === 'done' && (
         <div className="sg-panel">
           <img className="sg-panel-sticker" src={TANJIRO_PHOTOS.face} alt="" />
-          <p className="sg-kicker">{isRecord ? '¡nuevo récord!' : `se acabó el tiempo · ${mode.label}`}</p>
+          <p className="sg-kicker">
+            {muzan === 'defeated'
+              ? `¡Muzan derrotado! · ${mode.label}`
+              : isRecord
+                ? '¡nuevo récord!'
+                : `se acabó el tiempo · ${mode.label}`}
+          </p>
+          {muzan === 'defeated' && <img className="sg-muzan-trophy" src={MUZAN.finalSrc} alt="" />}
           <p className="sg-score">{score}</p>
           {mode.bosses && (
             <p className="sg-defeated">
               Lunas Superiores vencidas: <b>{defeated}</b> de {BOSS_TOTAL}
+              {muzan && (
+                <>
+                  <br />
+                  Muzan: <b>{muzan === 'defeated' ? 'derrotado' : 'huyó'}</b>
+                </>
+              )}
             </p>
           )}
-          <p className="sg-text">{resultMessage(mode, score, defeated)}</p>
+          {isRecord && muzan === 'defeated' && <p className="sg-defeated">¡y además, nuevo récord!</p>}
+          <p className="sg-text">{resultMessage(mode, score, defeated, muzan)}</p>
           <div className="sg-actions">
             <button type="button" className="sg-btn" onClick={() => startGame(modeId)}>
               Otra ronda
@@ -1190,6 +1310,7 @@ export default function SlashGame() {
           En total <b>{totalCuts(MODES[previewId])}</b> cortes
           {MODES[previewId].bossBonus ? ` · +${MODES[previewId].bossBonus} s por cada Luna vencida` : ''}
         </p>
+        <MuzanTeaser mode={MODES[previewId]} />
 
         <Legend />
         <button type="button" className="sg-btn sg-btn--big" onClick={() => setOpen(true)}>
