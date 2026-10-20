@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Reveal from '../../components/Reveal';
 import { ENMU, LOWER_MOONS, MUZAN, TANJIRO_PHOTOS, UPPER_MOONS, VILLAGERS } from '../../data/tanjiro';
+import { createSlashSounds, loadMuted } from './slashSounds';
 import './SlashGame.css';
 
 /* =========================================================
@@ -28,6 +29,7 @@ const HIT_SLACK = window.matchMedia?.('(pointer: coarse)').matches ? 1.22 : 1.08
                 velocidad de las Lunas Superiores
    bossBonus  → segundos extra al vencer a una Luna Superior
    firstBoss / bossGap → segundos hasta la primera y entre una y otra
+   villagerSeconds → segundos que se pierden al cortar a un aldeano
 
    Castillo Infinito está calculado para ser posible: con ~5 cortes por
    segundo se vence a las 7 Lunas en ~51 s, y el reloj llega a 66 s
@@ -44,6 +46,7 @@ const BASE = {
   bossBonus: 0,
   firstBoss: 5,
   bossGap: 3,
+  villagerSeconds: 2,
 };
 
 const MODES = {
@@ -65,6 +68,7 @@ const MODES = {
     hint: 'Lunas Superiores, una por una',
     bestKey: 'abby-tanjiro-slash-hard-best',
     bosses: true,
+    villagerSeconds: 3,
   },
   pillar: {
     ...BASE,
@@ -85,6 +89,7 @@ const MODES = {
     bossBonus: 3,
     firstBoss: 3,
     bossGap: 1.6,
+    villagerSeconds: 4,
   },
   castle: {
     ...BASE,
@@ -105,6 +110,7 @@ const MODES = {
     bossBonus: 6,
     firstBoss: 1.2,
     bossGap: 0.8,
+    villagerSeconds: 5,
   },
 };
 const MODE_LIST = Object.values(MODES);
@@ -139,6 +145,43 @@ function saveBest(key, value) {
     localStorage.setItem(key, String(value));
   } catch {
     /* almacenamiento no disponible, no pasa nada */
+  }
+}
+
+/* ranking con nombre: los 5 mejores de cada modo, guardados en este
+   dispositivo */
+const RANK_SIZE = 5;
+const NAME_KEY = 'abby-tanjiro-slash-name';
+const rankKey = (id) => `abby-tanjiro-slash-ranking-${id}`;
+
+function loadRanking(id) {
+  try {
+    const list = JSON.parse(localStorage.getItem(rankKey(id)) || '[]');
+    return Array.isArray(list) ? list.filter((e) => e && typeof e.score === 'number') : [];
+  } catch {
+    return [];
+  }
+}
+
+/* guarda el puntaje y devuelve la lista nueva y el lugar que quedó
+   (o -1 si no alcanzó a entrar) */
+function saveRanking(id, name, score) {
+  const entry = { name, score, at: Date.now() };
+  const list = [...loadRanking(id), entry].sort((a, b) => b.score - a.score || a.at - b.at).slice(0, RANK_SIZE);
+  try {
+    localStorage.setItem(rankKey(id), JSON.stringify(list));
+    localStorage.setItem(NAME_KEY, name);
+  } catch {
+    /* almacenamiento no disponible, no pasa nada */
+  }
+  return { list, place: list.indexOf(entry) };
+}
+
+function loadName() {
+  try {
+    return localStorage.getItem(NAME_KEY) || '';
+  } catch {
+    return '';
   }
 }
 
@@ -312,7 +355,7 @@ function Legend({ hard = false }) {
       </li>
       <li>
         <img className="sg-legend-face sg-legend-face--safe" src={VILLAGERS[0].src} alt="" />
-        <span>aldeanos −5, ¡no los cortes!</span>
+        <span>aldeanos: te quitan segundos, ¡no los cortes!</span>
       </li>
       {hard && (
         <li>
@@ -346,11 +389,19 @@ const totalCuts = (mode) => UPPER_MOONS.reduce((n, u) => n + bossHpFor(u, mode),
 
 /* lo que trae el modo elegido, antes de entrar */
 function ModeDetails({ mode }) {
+  const villagerNote = (
+    <p className="sg-details-note sg-details-note--villager">
+      Cortar a un aldeano te quita <b>{mode.villagerSeconds} s</b>
+    </p>
+  );
   if (!mode.bosses) {
     return (
-      <p className="sg-details-note">
-        Sin Lunas Superiores: solo Lunas Inferiores, Enmu y aldeanos. Ideal para calentar.
-      </p>
+      <>
+        <p className="sg-details-note">
+          Sin Lunas Superiores: solo Lunas Inferiores, Enmu y aldeanos. Ideal para calentar.
+        </p>
+        {villagerNote}
+      </>
     );
   }
   return (
@@ -361,6 +412,7 @@ function ModeDetails({ mode }) {
         En total <b>{totalCuts(mode)}</b> cortes
         {mode.bossBonus ? ` · +${mode.bossBonus} s por cada Luna vencida` : ''}
       </p>
+      {villagerNote}
       <MuzanTeaser mode={mode} />
     </div>
   );
@@ -384,10 +436,15 @@ function MuzanTeaser({ mode }) {
 
 /* ---------- la arena a pantalla completa ---------- */
 
-function SlashArena({ bests, onBest, onClose }) {
+function SlashArena({ bests, onBest, onRanking, onClose }) {
   const canvasRef = useRef(null);
   const gameRef = useRef(null);
   const closeRef = useRef(null);
+  const sfxRef = useRef(null);
+  const [muted, setMuted] = useState(loadMuted);
+  const [name, setName] = useState(loadName);
+  /* null = falta escribir el nombre; si no, la lista y su lugar */
+  const [saved, setSaved] = useState(null);
   const bestsRef = useRef(bests);
   const onBestRef = useRef(onBest);
   const [phase, setPhase] = useState('ready');
@@ -418,6 +475,8 @@ function SlashArena({ bests, onBest, onClose }) {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     [...LOWER_MOONS, ENMU, ...VILLAGERS, ...UPPER_MOONS].forEach((f) => getImage(f.src));
+    const sfx = createSlashSounds();
+    sfxRef.current = sfx;
 
     const g = {
       mode: MODES.normal,
@@ -557,21 +616,27 @@ function SlashArena({ bests, onBest, onClose }) {
       splitInTwo(it, Math.atan2(by - ay, bx - ax));
       burst(it.x, it.y, RING[it.kind], 14);
       if (it.kind === 'villager') {
-        g.score = Math.max(0, g.score - 5);
+        /* cortar a un aldeano cuesta segundos, más entre más difícil */
+        const lost = g.mode.villagerSeconds;
+        g.timeLeft = Math.max(0, g.timeLeft - lost);
         g.flash = 1;
         g.flashColor = '255, 60, 80';
         g.shake = 0.35;
         g.strokeHits = 0;
-        popup(it.x, it.y, '−5 ¡era un aldeano!', '#ff5468', 1.1);
+        popup(it.x, it.y, `−${lost} s ¡era un aldeano!`, '#ff5468', 1.2);
+        sfx.villager();
       } else if (it.kind === 'time') {
         g.timeLeft += 4;
         g.strokeHits += 1;
         popup(it.x, it.y, '+4 s', '#7fd6ff');
+        sfx.time();
       } else {
         const points = it.kind === 'enmu' ? 5 : 1;
         g.score += points;
         g.strokeHits += 1;
         popup(it.x, it.y, `+${points}`, it.kind === 'enmu' ? '#ffc14d' : '#ffffff');
+        if (it.kind === 'enmu') sfx.enmu();
+        else sfx.slice();
       }
       setScore(g.score);
     };
@@ -619,6 +684,7 @@ function SlashArena({ bests, onBest, onClose }) {
       g.flash = 0.8;
       g.flashColor = '120, 0, 20';
       g.shake = 0.5;
+      sfx.muzan();
       setMuzan('fight');
     };
 
@@ -633,6 +699,7 @@ function SlashArena({ bests, onBest, onClose }) {
       g.score += b.def.points;
       setScore(g.score);
       g.boss = null;
+      sfx.bossDown();
 
       if (b.isMuzan) {
         burst(b.x, b.y, '#ffffff', 30, 1.8);
@@ -681,6 +748,7 @@ function SlashArena({ bests, onBest, onClose }) {
         defeatBoss(b, ang);
         return;
       }
+      sfx.bossHit();
       /* a la mitad de su vida, Muzan pasa a su forma final */
       if (b.isMuzan && !b.final && b.hp <= b.max / 2) {
         b.final = true;
@@ -690,6 +758,7 @@ function SlashArena({ bests, onBest, onClose }) {
         g.flashColor = '200, 0, 30';
         g.shake = 0.5;
         burst(b.x, b.y, '#ff3b3b', 30, 1.5);
+        sfx.muzan();
       }
     };
 
@@ -879,6 +948,7 @@ function SlashArena({ bests, onBest, onClose }) {
         setScore(g.score);
         const last = g.blade[g.blade.length - 1];
         popup(last ? last.x : g.w / 2, (last ? last.y : g.h / 2) - 34, `¡Combo x${g.strokeHits}! +${bonus}`, '#ff8a3d', 1.3);
+        sfx.combo(g.strokeHits);
       }
       g.strokeHits = 0;
       g.down = false;
@@ -899,6 +969,8 @@ function SlashArena({ bests, onBest, onClose }) {
         onBestRef.current(key, g.score);
         setIsRecord(true);
       }
+      sfx.end();
+      setSaved(null);
       setPhase('done');
     };
 
@@ -932,7 +1004,9 @@ function SlashArena({ bests, onBest, onClose }) {
       setMuzan(null);
       setLeft(mode.seconds);
       setIsRecord(false);
+      setSaved(null);
       setPhase('playing');
+      sfx.unlock();
     };
     gameRef.current = { start };
 
@@ -1004,7 +1078,7 @@ function SlashArena({ bests, onBest, onClose }) {
         for (let i = 1; i < g.blade.length; i++) {
           const a = g.blade[i - 1];
           const b = g.blade[i];
-          const life = 1 - (now - b.t) / BLADE_LIFE;
+          const life = Math.min(1, 1 - (now - b.t) / BLADE_LIFE);
           /* brillo: una línea ancha y transparente debajo (más barato que shadowBlur) */
           ctx.globalAlpha = life * 0.35;
           ctx.strokeStyle = fire ? '#ff6428' : '#46b4ff';
@@ -1109,6 +1183,7 @@ function SlashArena({ bests, onBest, onClose }) {
     };
     const onDown = (e) => {
       if (!g.playing) return;
+      sfx.unlock();
       canvas.setPointerCapture?.(e.pointerId);
       g.down = true;
       g.strokeHits = 0;
@@ -1120,6 +1195,9 @@ function SlashArena({ bests, onBest, onClose }) {
       const prev = g.blade[g.blade.length - 1];
       g.blade.push(p);
       if (!prev) return;
+      /* soplo de la espada solo cuando el tajo es rápido */
+      const speed = Math.hypot(p.x - prev.x, p.y - prev.y) / Math.max(1, p.t - prev.t);
+      if (speed > 1.1) sfx.swish(speed / 2.5);
       for (const it of g.items) {
         if (!it.dead && segmentDistance(it.x, it.y, prev.x, prev.y, p.x, p.y) < it.r * HIT_SLACK) {
           slice(it, prev.x, prev.y, p.x, p.y);
@@ -1146,6 +1224,7 @@ function SlashArena({ bests, onBest, onClose }) {
     window.addEventListener('resize', resize);
     return () => {
       cancelAnimationFrame(raf);
+      sfx.close();
       canvas.removeEventListener('pointerdown', onDown);
       canvas.removeEventListener('pointermove', onMove);
       canvas.removeEventListener('pointerup', onUp);
@@ -1156,6 +1235,21 @@ function SlashArena({ bests, onBest, onClose }) {
 
   const mode = MODES[modeId];
   const startGame = (id) => gameRef.current?.start(id);
+
+  const toggleSound = () => {
+    const next = !muted;
+    sfxRef.current?.setMuted(next);
+    setMuted(next);
+  };
+
+  const submitName = (e) => {
+    e.preventDefault();
+    const clean = name.trim().slice(0, 16) || 'Sin nombre';
+    const result = saveRanking(modeId, clean, score);
+    setName(clean);
+    setSaved(result);
+    onRanking(modeId, result.list);
+  };
 
   return (
     <div className="sg-overlay" role="dialog" aria-modal="true" aria-label="Corte de demonios">
@@ -1181,6 +1275,19 @@ function SlashArena({ bests, onBest, onClose }) {
       <button ref={closeRef} type="button" className="sg-close" onClick={onClose} aria-label="Cerrar minijuego">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M6 6l12 12M18 6L6 18" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        className={`sg-close sg-sound${muted ? ' is-muted' : ''}`}
+        onClick={toggleSound}
+        aria-pressed={!muted}
+        aria-label={muted ? 'Activar sonidos' : 'Silenciar sonidos'}
+        title={muted ? 'Activar sonidos' : 'Silenciar sonidos'}
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 9v6h4l5 4V5L8 9H4z" />
+          {muted ? <path d="M16 9l5 6M21 9l-5 6" /> : <path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11" />}
         </svg>
       </button>
 
@@ -1254,6 +1361,46 @@ function SlashArena({ bests, onBest, onClose }) {
           )}
           {isRecord && muzan === 'defeated' && <p className="sg-defeated">¡y además, nuevo récord!</p>}
           <p className="sg-text">{resultMessage(mode, score, defeated, muzan)}</p>
+
+          {score > 0 && !saved && (
+            <form className="sg-name" onSubmit={submitName}>
+              <label htmlFor="sgName">Escribe tu nombre para guardar tu puntaje</label>
+              <div className="sg-name-row">
+                <input
+                  id="sgName"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  maxLength={16}
+                  placeholder="tu nombre"
+                  autoComplete="nickname"
+                  enterKeyHint="done"
+                />
+                <button type="submit" className="sg-btn">
+                  Guardar
+                </button>
+              </div>
+            </form>
+          )}
+
+          {saved && (
+            <div className="sg-ranking">
+              <p className="sg-row-label">
+                Ranking · {mode.label}
+                {saved.place === -1 ? ' (esta vez no alcanzó)' : ''}
+              </p>
+              <ol>
+                {saved.list.map((e, i) => (
+                  <li key={`${e.at}-${i}`} className={i === saved.place ? 'is-you' : ''}>
+                    <span className="sg-ranking-pos">{i + 1}</span>
+                    <span className="sg-ranking-name">{e.name}</span>
+                    <b>{e.score}</b>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+
           <div className="sg-actions">
             <button type="button" className="sg-btn" onClick={() => startGame(modeId)}>
               Otra ronda
@@ -1273,9 +1420,11 @@ function SlashArena({ bests, onBest, onClose }) {
 export default function SlashGame() {
   const [open, setOpen] = useState(false);
   const [bests, setBests] = useState(() => Object.fromEntries(MODE_LIST.map((m) => [m.id, loadBest(m.bestKey)])));
+  const [rankings, setRankings] = useState(() => Object.fromEntries(MODE_LIST.map((m) => [m.id, loadRanking(m.id)])));
   const [previewId, setPreviewId] = useState('hard');
   const close = useCallback(() => setOpen(false), []);
   const onBest = useCallback((id, value) => setBests((b) => ({ ...b, [id]: value })), []);
+  const onRanking = useCallback((id, list) => setRankings((r) => ({ ...r, [id]: list })), []);
 
   return (
     <Reveal as="section" className="sg-section">
@@ -1320,17 +1469,24 @@ export default function SlashGame() {
           Jugar
         </button>
         <ul className="sg-launch-records">
-          {MODE_LIST.map((m) => (
-            <li key={m.id}>
-              <span>{m.label}</span>
-              <b>{bests[m.id] ?? '—'}</b>
-            </li>
-          ))}
+          {MODE_LIST.map((m) => {
+            const top = rankings[m.id]?.[0];
+            /* el mejor con nombre, si coincide con el récord */
+            const holder = top && top.score >= (bests[m.id] ?? 0) ? top.name : null;
+            return (
+              <li key={m.id}>
+                <span>{m.label}</span>
+                <b>{bests[m.id] ?? '—'}</b>
+                {holder && <span className="sg-launch-holder">{holder}</span>}
+              </li>
+            );
+          })}
         </ul>
       </div>
 
       {/* portal: Reveal usa transform, que atraparía a un position:fixed */}
-      {open && createPortal(<SlashArena bests={bests} onBest={onBest} onClose={close} />, document.body)}
+      {open &&
+        createPortal(<SlashArena bests={bests} onBest={onBest} onRanking={onRanking} onClose={close} />, document.body)}
     </Reveal>
   );
 }
