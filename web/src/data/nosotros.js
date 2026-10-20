@@ -3,6 +3,18 @@
    Las fotos salen de public/timeline/ (las mismas de la línea del tiempo);
    cambia src, title o words libremente. */
 
+/* la canción que empieza a sonar al abrir "Nosotros" (por el reproductor
+   principal, así se puede pausar desde la barra de abajo) */
+export const NOSOTROS_SONG = {
+  key: 'extra:congratulations',
+  title: 'Congratulations',
+  artist: 'nuestra canción',
+  subtitle: 'para nosotros',
+  file: './nosotros/congratulations.mp3',
+  cover: './timeline/018.jpeg',
+  dur: 227,
+};
+
 export const HEART_PHOTOS = [
   {
     src: './timeline/001.jpeg',

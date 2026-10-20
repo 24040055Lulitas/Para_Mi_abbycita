@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Reveal from '../../components/Reveal';
 import { usePlayer } from '../../context/PlayerContext';
-import { COLOR_POEM, HEART_PHOTOS, POLAROIDS, VIDEOS } from '../../data/nosotros';
+import { COLOR_POEM, HEART_PHOTOS, NOSOTROS_SONG, POLAROIDS, VIDEOS } from '../../data/nosotros';
 import './Nosotros.css';
 
 /* todas las fotos en un solo recorrido, para poder pasar de una a otra
@@ -192,7 +192,15 @@ export default function Nosotros() {
   const navigate = useNavigate();
   const [openIndex, setOpenIndex] = useState(null);
   const [videoIndex, setVideoIndex] = useState(null);
-  const { isPlaying, togglePlay } = usePlayer();
+  const { isPlaying, togglePlay, playTrackRef, current } = usePlayer();
+
+  /* al abrir la sección empieza su canción, salvo que ya esté sonando */
+  const songStarted = useRef(isPlaying && current?.key === NOSOTROS_SONG.key);
+  useEffect(() => {
+    if (songStarted.current) return;
+    songStarted.current = true;
+    playTrackRef(NOSOTROS_SONG);
+  }, [playTrackRef]);
 
   /* la música de fondo se pausa al abrir un video, para que se escuche */
   const openVideo = (i) => {
