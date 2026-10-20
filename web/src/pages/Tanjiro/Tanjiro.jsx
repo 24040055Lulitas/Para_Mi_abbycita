@@ -4,6 +4,7 @@ import Reveal from '../../components/Reveal';
 import SaveButton from '../../components/SaveButton/SaveButton';
 import { restartFromGate } from '../../components/Gate/restart';
 import { usePlayer } from '../../context/PlayerContext';
+import { useMusicHold } from '../../hooks/useMusicHold';
 import IntroVideo from '../../components/IntroVideo/IntroVideo';
 import {
   TANJIRO_GALLERY,
@@ -160,8 +161,23 @@ function Viewer({ index, onClose, onStep }) {
 export default function Tanjiro() {
   const navigate = useNavigate();
   const [openIndex, setOpenIndex] = useState(null);
-  const { playTrackRef, current, isPlaying, togglePlay } = usePlayer();
+  const { playTemporary, current, isPlaying, togglePlay } = usePlayer();
   const songOn = current?.key === TANJIRO_SONG.key;
+
+  /* la canción de Tanjiro suena "de paso": al terminar o al salir de la
+     sección, vuelve la canción de fondo donde se quedó */
+  const songRelease = useRef(null);
+  const playSong = useCallback(() => {
+    songRelease.current?.();
+    songRelease.current = playTemporary(TANJIRO_SONG);
+  }, [playTemporary]);
+  useEffect(
+    () => () => {
+      songRelease.current?.();
+      songRelease.current = null;
+    },
+    []
+  );
 
   /* el video de entrada sale una vez por visita; mientras suena, la
      música se pausa, y al terminar empieza la canción de Tanjiro */
@@ -172,14 +188,13 @@ export default function Tanjiro() {
       return true;
     }
   });
-  const pausedForIntro = useRef(false);
+  const introHold = useMusicHold();
+  const videoHold = useMusicHold();
+  const { hold: holdForIntro, release: releaseIntro } = introHold;
 
   useEffect(() => {
-    if (intro && isPlaying && !pausedForIntro.current) {
-      pausedForIntro.current = true;
-      togglePlay();
-    }
-  }, [intro, isPlaying, togglePlay]);
+    if (intro) holdForIntro();
+  }, [intro, holdForIntro]);
 
   const afterIntro = useCallback(() => {
     setIntro(false);
@@ -188,8 +203,11 @@ export default function Tanjiro() {
     } catch {
       /* sin almacenamiento, el video saldrá otra vez la próxima */
     }
-    playTrackRef(TANJIRO_SONG);
-  }, [playTrackRef]);
+    /* primero la canción de Tanjiro y luego se suelta la pausa del video:
+       así la canción "hereda" lo que hay que regresar al final */
+    playSong();
+    releaseIntro();
+  }, [playSong, releaseIntro]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -203,7 +221,7 @@ export default function Tanjiro() {
 
   const onSong = () => {
     if (songOn) togglePlay();
-    else playTrackRef(TANJIRO_SONG);
+    else playSong();
   };
 
   return (
@@ -279,9 +297,9 @@ export default function Tanjiro() {
             controls
             playsInline
             preload="none"
-            onPlay={() => {
-              if (isPlaying) togglePlay();
-            }}
+            onPlay={videoHold.hold}
+            onPause={() => videoHold.release()}
+            onEnded={() => videoHold.release()}
           />
         </div>
         <SaveButton src={TANJIRO_VIDEO} label="Descargar video" />

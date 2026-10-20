@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { usePlayer } from '../../context/PlayerContext';
 import { BIRTHDAY_VIDEO } from '../../data/birthday';
 import { resolveTrackRef } from '../../data/catalog';
+import { useMusicHold } from '../../hooks/useMusicHold';
 import IntroVideo from '../IntroVideo/IntroVideo';
 import './Gate.css';
 
@@ -11,8 +12,6 @@ export const SESSION_KEY = 'abby-gate-entered';
 /* canción de entrada — "we fell in love in october" de girl in red;
    cámbiala aquí (data/catalog.js tiene el catálogo completo) */
 const ENTRANCE_TRACK = resolveTrackRef({ single: 'we-fell-in-love-in-october' });
-/* la de Billie que suena en el cumpleaños, después del video */
-const BIRTHDAY_TRACK = resolveTrackRef({ album: 'wwafawdwg', track: 12 });
 
 const HEART_PATH =
   'M12 20s-6.7-4.2-9-8C1.3 9.1 2.6 5.6 5.7 5c2.1-.4 3.9.6 4.9 2.2L12 9l1.4-1.8c1-1.6 2.8-2.6 4.9-2.2 3.1.6 4.4 4.1 2.7 7-2.3 3.8-9 8-9 8z';
@@ -61,7 +60,8 @@ export default function Gate({ children }) {
   const [birthdayVideo, setBirthdayVideo] = useState(false);
   const enterBtnRef = useRef(null);
   const skipBtnRef = useRef(null);
-  const { playTrackRef, current, isPlaying, togglePlay } = usePlayer();
+  const { playTrackRef } = usePlayer();
+  const { hold: holdMusic, release: releaseMusic } = useMusicHold();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -90,9 +90,9 @@ export default function Gate({ children }) {
 
   /* "Hoy es un día especial": primero el video de cumpleaños a pantalla
      completa (con la música en pausa para que se escuche), y al terminar
-     abre el cumpleaños con "i love you" de Billie de fondo */
+     abre el cumpleaños y la canción de entrada sigue donde se quedó */
   const goToBirthday = () => {
-    if (isPlaying) togglePlay();
+    holdMusic();
     setBirthdayVideo(true);
   };
 
@@ -100,13 +100,8 @@ export default function Gate({ children }) {
     setBirthdayVideo(false);
     navigate('/cumpleanos');
     finish();
-    if (!BIRTHDAY_TRACK) return;
-    if (current?.key === BIRTHDAY_TRACK.key) {
-      if (!isPlaying) togglePlay();
-    } else {
-      playTrackRef(BIRTHDAY_TRACK);
-    }
-  }, [current, finish, isPlaying, navigate, playTrackRef, togglePlay]);
+    releaseMusic(ENTRANCE_TRACK);
+  }, [finish, navigate, releaseMusic]);
 
   /* "Saltar": directo al inicio, sin carta */
   const skipToHome = () => {

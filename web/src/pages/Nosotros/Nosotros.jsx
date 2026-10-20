@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Reveal from '../../components/Reveal';
 import SaveButton from '../../components/SaveButton/SaveButton';
 import { usePlayer } from '../../context/PlayerContext';
+import { useMusicHold } from '../../hooks/useMusicHold';
 import { COLOR_POEM, HEART_PHOTOS, NOSOTROS_SONG, POLAROIDS, VIDEOS } from '../../data/nosotros';
 import './Nosotros.css';
 
@@ -195,19 +196,16 @@ export default function Nosotros() {
   const navigate = useNavigate();
   const [openIndex, setOpenIndex] = useState(null);
   const [videoIndex, setVideoIndex] = useState(null);
-  const { isPlaying, togglePlay, playTrackRef, current } = usePlayer();
+  const { playTemporary } = usePlayer();
 
-  /* al abrir la sección empieza su canción, salvo que ya esté sonando */
-  const songStarted = useRef(isPlaying && current?.key === NOSOTROS_SONG.key);
-  useEffect(() => {
-    if (songStarted.current) return;
-    songStarted.current = true;
-    playTrackRef(NOSOTROS_SONG);
-  }, [playTrackRef]);
+  /* al abrir la sección suena su canción "de paso": al terminar, o al
+     salir de aquí, vuelve la canción de fondo donde se quedó */
+  useEffect(() => playTemporary(NOSOTROS_SONG), [playTemporary]);
 
-  /* la música de fondo se pausa al abrir un video, para que se escuche */
+  /* la música se pausa mientras se ve un video y vuelve al cerrarlo */
+  const { hold: holdMusic, release: releaseMusic } = useMusicHold();
   const openVideo = (i) => {
-    if (isPlaying) togglePlay();
+    holdMusic();
     setVideoIndex(i);
   };
 
@@ -220,7 +218,10 @@ export default function Nosotros() {
     (dir) => setOpenIndex((i) => (i === null ? i : (i + dir + ALL_PHOTOS.length) % ALL_PHOTOS.length)),
     []
   );
-  const closeVideo = useCallback(() => setVideoIndex(null), []);
+  const closeVideo = useCallback(() => {
+    setVideoIndex(null);
+    releaseMusic();
+  }, [releaseMusic]);
   const stepVideo = useCallback(
     (dir) => setVideoIndex((i) => (i === null ? i : (i + dir + VIDEOS.length) % VIDEOS.length)),
     []

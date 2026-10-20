@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Reveal from '../../components/Reveal';
-import { usePlayer } from '../../context/PlayerContext';
+import { useMusicHold } from '../../hooks/useMusicHold';
 import { ENMU, LOWER_MOONS, MUZAN, SLASH_MUSIC, TANJIRO_PHOTOS, UPPER_MOONS, VILLAGERS } from '../../data/tanjiro';
 import { createSlashSounds, loadMuted } from './slashSounds';
 import './SlashGame.css';
@@ -1241,27 +1241,11 @@ function SlashArena({ bests, onBest, onRanking, onClose }) {
 
   /* la música de la página se pausa mientras se juega (el juego trae la
      suya) y vuelve a sonar al cerrar el minijuego */
-  const { isPlaying, togglePlay } = usePlayer();
-  const resumeRef = useRef(false);
-  /* siempre la versión más nueva de togglePlay (la de un render viejo
-     todavía "cree" que la música está sonando) */
-  const toggleRef = useRef(togglePlay);
-  useEffect(() => {
-    toggleRef.current = togglePlay;
-  });
+  const { hold: holdMusic } = useMusicHold();
   const startGame = (id) => {
-    if (isPlaying) {
-      togglePlay();
-      resumeRef.current = true;
-    }
+    holdMusic();
     gameRef.current?.start(id);
   };
-  useEffect(
-    () => () => {
-      if (resumeRef.current) toggleRef.current();
-    },
-    []
-  );
 
   const toggleSound = () => {
     const next = !muted;

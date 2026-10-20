@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Reveal from '../../components/Reveal';
 import SaveButton from '../../components/SaveButton/SaveButton';
-import { usePlayer } from '../../context/PlayerContext';
+import { useMusicHold } from '../../hooks/useMusicHold';
 import {
   BIRTHDAY_BILLIE,
   BIRTHDAY_STICKERS,
@@ -516,7 +516,8 @@ function Cake() {
 export default function Birthday() {
   const navigate = useNavigate();
   const [pops, setPops] = useState(0);
-  const { isPlaying, togglePlay } = usePlayer();
+  /* el video pausa la canción de fondo y, al pausarlo o terminar, vuelve */
+  const { hold: holdMusic, release: releaseMusic } = useMusicHold();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -592,9 +593,9 @@ export default function Birthday() {
             controls
             playsInline
             preload="none"
-            onPlay={() => {
-              if (isPlaying) togglePlay();
-            }}
+            onPlay={holdMusic}
+            onPause={() => releaseMusic()}
+            onEnded={() => releaseMusic()}
           />
         </div>
         <SaveButton src={BIRTHDAY_VIDEO} label="Descargar video" />

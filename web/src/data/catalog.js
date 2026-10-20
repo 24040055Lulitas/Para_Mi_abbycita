@@ -91,7 +91,7 @@ export const SINGLES = {
   'we-fell-in-love-in-october': {
     title: 'we fell in love in october',
     artist: 'girl in red',
-    subtitle: 'girl in red · sencillo · 2018',
+    subtitle: 'sencillo · 2018',
     file: './canciones/we-fell-in-love-in-october.mp3',
     cover: './canciones/october-cover.svg',
     dur: 187,

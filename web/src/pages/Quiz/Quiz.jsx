@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { usePlayer } from '../../context/PlayerContext';
+import { useMusicHold } from '../../hooks/useMusicHold';
 import { QUIZ, QUIZ_RESULTS } from '../../data/quiz';
 import AeroGames from './AeroGames';
 import './Quiz.css';
@@ -381,7 +381,6 @@ function ResultCard({ score, onRetry, onNext }) {
 
 export default function Quiz() {
   const navigate = useNavigate();
-  const { isPlaying: mainIsPlaying, togglePlay: toggleMainPlay } = usePlayer();
   const [answers, setAnswers] = useState({});
   const [openIndex, setOpenIndex] = useState(null);
   const [showResult, setShowResult] = useState(false);
@@ -403,13 +402,12 @@ export default function Quiz() {
   }, []);
 
   /* si venías con una canción sonando en el reproductor principal, se
-     pausa al entrar (la barra está oculta aquí, así que no se puede
-     controlar) para que no suenen las dos a la vez */
+     pausa al entrar (el quiz trae su propia música) y vuelve a sonar
+     donde se quedó al salir */
+  const { hold: holdMusic } = useMusicHold();
   useEffect(() => {
-    if (mainIsPlaying) toggleMainPlay();
-    // solo al entrar al quiz, no cada vez que cambie isPlaying
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    holdMusic();
+  }, [holdMusic]);
 
   /* la música de ambiente suena sola al entrar, en volumen bajo, y se
      detiene al salir del quiz */

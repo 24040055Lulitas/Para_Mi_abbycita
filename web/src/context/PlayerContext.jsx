@@ -119,8 +119,110 @@ export function PlayerProvider({ children }) {
     [updateMediaSession]
   );
 
+  /* ---------- interrupciones ----------
+     Videos, la música de una sección o la de un minijuego "piden
+     prestado" el audio: pausan (o cambian) la canción de fondo y, al
+     terminar, la regresan donde se quedó. Se apilan: si una se suelta
+     mientras otra más nueva sigue activa, la nueva hereda lo que había
+     que regresar. Si ella elige otra canción a mano, eso manda y las
+     interrupciones se olvidan. */
+  const holdsRef = useRef([]);
+  const liveRef = useRef({ queue: [], queueIndex: -1 });
+  useEffect(() => {
+    liveRef.current = { queue, queueIndex };
+  });
+
+  const snapshot = useCallback(() => {
+    const a = audioRef.current;
+    return {
+      queue: liveRef.current.queue,
+      index: liveRef.current.queueIndex,
+      src: a?.src || '',
+      time: a?.currentTime || 0,
+      wasPlaying: !!a && !a.paused,
+    };
+  }, []);
+
+  const restore = useCallback(
+    (snap) => {
+      const a = audioRef.current;
+      if (!a || !snap || snap.index < 0 || !snap.queue[snap.index]) return;
+      const track = snap.queue[snap.index];
+      if (a.src !== snap.src) {
+        a.pause();
+        setQueue(snap.queue);
+        setQueueIndex(snap.index);
+        a.src = snap.src;
+        pendingSeekRef.current = snap.time;
+        updateMediaSession(track);
+      }
+      if (snap.wasPlaying) {
+        a.play().catch(() => {});
+        setIsPlaying(true);
+      }
+    },
+    [updateMediaSession]
+  );
+
+  const releaseHold = useCallback(
+    (hold) => {
+      const holds = holdsRef.current;
+      const i = holds.indexOf(hold);
+      if (i === -1) return false;
+      holds.splice(i, 1);
+      /* había otra interrupción más nueva encima: ella regresa lo de antes */
+      if (i < holds.length) {
+        holds[i].snap = hold.snap;
+        return false;
+      }
+      const a = audioRef.current;
+      /* solo se regresa si nadie cambió nada mientras tanto */
+      const untouched = hold.kind === 'pause' ? a && a.paused && a.src === hold.after : a && a.src === hold.after;
+      if (untouched) restore(hold.snap);
+      return true;
+    },
+    [restore]
+  );
+
+  /* pausa lo que suena; devuelve una función para soltarlo (que lo
+     reanuda). release(fallback): si al soltar no hay nada sonando,
+     pone a sonar "fallback" */
+  const interrupt = useCallback(() => {
+    const a = audioRef.current;
+    const hold = { kind: 'pause', snap: snapshot() };
+    if (a && !a.paused) {
+      a.pause();
+      setIsPlaying(false);
+    }
+    hold.after = a?.src || '';
+    holdsRef.current.push(hold);
+    return (fallback) => {
+      releaseHold(hold);
+      if (fallback && a && a.paused) {
+        holdsRef.current = [];
+        const list = [fallback];
+        playAt(list, 0);
+      }
+    };
+  }, [snapshot, releaseHold, playAt]);
+
+  /* pone una canción "de paso" (la de una sección); al soltarla, o
+     cuando termina, vuelve la que estaba sonando */
+  const playTemporary = useCallback(
+    (track) => {
+      const hold = { kind: 'temp', key: track.key, snap: snapshot() };
+      playAt([track], 0);
+      hold.after = audioRef.current?.src || '';
+      holdsRef.current.push(hold);
+      return () => releaseHold(hold);
+    },
+    [snapshot, playAt, releaseHold]
+  );
+
+  /* cuando ella elige una canción, eso manda: se olvidan las interrupciones */
   const playTrackRef = useCallback(
     (track, list) => {
+      holdsRef.current = [];
       const fullList = list && list.length ? list : [track];
       const index = fullList.findIndex((t) => t.key === track.key);
       playAt(fullList, index === -1 ? 0 : index);
@@ -237,6 +339,12 @@ export function PlayerProvider({ children }) {
       }
     };
     const onEnded = () => {
+      /* terminó una canción "de paso": vuelve la que estaba antes */
+      const top = holdsRef.current[holdsRef.current.length - 1];
+      if (top && top.kind === 'temp' && audio.src === top.after) {
+        releaseHold(top);
+        return;
+      }
       if (repeatMode === 'one') {
         audio.currentTime = 0;
         audio.play().catch(() => {});
@@ -268,7 +376,7 @@ export function PlayerProvider({ children }) {
       audio.removeEventListener('pause', onPause);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [repeatMode, next, prev, togglePlay]);
+  }, [repeatMode, next, prev, togglePlay, releaseHold]);
 
   /* guarda la sesión cada ~5 s de reproducción */
   const savedSecond = Math.floor(currentTime / 5);
@@ -312,6 +420,8 @@ export function PlayerProvider({ children }) {
       lastSession,
       resume,
       playTrackRef,
+      interrupt,
+      playTemporary,
       togglePlay,
       next,
       prev,
@@ -342,6 +452,8 @@ export function PlayerProvider({ children }) {
       lastSession,
       resume,
       playTrackRef,
+      interrupt,
+      playTemporary,
       togglePlay,
       next,
       prev,
