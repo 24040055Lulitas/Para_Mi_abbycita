@@ -98,9 +98,6 @@ export default function Letter() {
           </Reveal>
 
           <Reveal as="p">
-            De las rosas y tus ojitos cerrados. De Neeko, nuestra hija, que nunca falta en las
-            fotos. De los «caracoles» que resultaron ser piñones, y de cómo te emocionaste con
-            el dinosaurio del mall.{' '}
             <em className="hl">No son fechas: son los lugares donde aprendí a quererte.</em>
           </Reveal>
 
