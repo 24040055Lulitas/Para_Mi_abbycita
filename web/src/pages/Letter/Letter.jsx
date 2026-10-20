@@ -93,16 +93,14 @@ export default function Letter() {
           </figure>
 
           <Reveal as="p">
-            Me acuerdo de todo. Del paseo en bote de noche, con las luces temblando en el agua,
-            Rex, el dinosaurio de peluche, de copiloto y un frío que no nos importó. De las primeras
-            flores, el 23 de agosto, y de cómo me las describiste tú. Del té de burbujas el 13
-            de septiembre: tu Ferrero, mi Taro, y tu nombre escrito en el vaso como si fuera
-            cualquier cosa, cuando para mí no lo es.
+            Me acuerdo de todo. Del paseo en bote de noche, con Rex, el dinosaurio de peluche,
+            de copiloto.
           </Reveal>
 
           <Reveal as="p">
-            De la catedral iluminada en aquel pueblo mágico, de tus caras chistosas que nadie
-            más ve y de los calcetines disparejos.{' '}
+            De las rosas y tus ojitos cerrados. De Neeko, nuestra hija, que nunca falta en las
+            fotos. De los «caracoles» que resultaron ser piñones, y de cómo te emocionaste con
+            el dinosaurio del mall.{' '}
             <em className="hl">No son fechas: son los lugares donde aprendí a quererte.</em>
           </Reveal>
 
