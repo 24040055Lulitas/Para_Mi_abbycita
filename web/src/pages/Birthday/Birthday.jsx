@@ -157,6 +157,101 @@ function Burst() {
   );
 }
 
+/* ---------- el pay de limón (dibujado en SVG) ---------- */
+
+/* puntos sobre una elipse centrada en el pay; se ordenan de atrás hacia
+   adelante para que lo de enfrente tape a lo de atrás */
+const onEllipse = (n, rx, ry, cy = 92) =>
+  Array.from({ length: n }, (_, i) => {
+    const a = (i / n) * Math.PI * 2;
+    return { x: 160 + Math.cos(a) * rx, y: cy + Math.sin(a) * ry };
+  }).sort((p, q) => p.y - q.y);
+
+const PIE_CRIMP = onEllipse(30, 139, 33);
+const PIE_CREAM = onEllipse(11, 106, 22);
+const PIE_FLUTES = Array.from({ length: 11 }, (_, i) => 55 + i * 21);
+const PIE_LEMONS = [
+  { x: 96, y: 92, r: -12 },
+  { x: 224, y: 92, r: 14 },
+  { x: 160, y: 109, r: 0 },
+];
+
+function LemonSlice({ x, y, r }) {
+  return (
+    <g transform={`translate(${x} ${y}) rotate(${r})`}>
+      <ellipse rx="17" ry="8.5" fill="#f2c82c" stroke="#d9a915" strokeWidth="1.5" />
+      <ellipse rx="13.5" ry="6.2" fill="#fff4a6" />
+      {[0, 45, 90, 135].map((d) => (
+        <line
+          key={d}
+          x1={-13 * Math.cos((d * Math.PI) / 180)}
+          y1={-6 * Math.sin((d * Math.PI) / 180)}
+          x2={13 * Math.cos((d * Math.PI) / 180)}
+          y2={6 * Math.sin((d * Math.PI) / 180)}
+          stroke="#f2d75a"
+          strokeWidth="1.3"
+        />
+      ))}
+      <ellipse rx="2" ry="1.2" fill="#fffbe0" />
+    </g>
+  );
+}
+
+function LemonPie() {
+  return (
+    <svg className="bd-pie" viewBox="0 0 320 180" aria-hidden="true">
+      <defs>
+        <linearGradient id="bdCrust" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#f0bd68" />
+          <stop offset="1" stopColor="#bf7633" />
+        </linearGradient>
+        <radialGradient id="bdLemon" cx="0.5" cy="0.4" r="0.6">
+          <stop offset="0" stopColor="#fff6b8" />
+          <stop offset="0.7" stopColor="#fbe36f" />
+          <stop offset="1" stopColor="#efc93f" />
+        </radialGradient>
+      </defs>
+
+      {/* plato */}
+      <ellipse cx="160" cy="154" rx="158" ry="23" fill="#ece5f3" />
+      <ellipse cx="160" cy="151" rx="140" ry="16" fill="#fbf8fd" />
+
+      {/* costado de la costra, con sus estrías */}
+      <path d="M16 92 L36 146 A124 24 0 0 0 284 146 L304 92 Z" fill="url(#bdCrust)" />
+      {PIE_FLUTES.map((x) => (
+        <line key={x} x1={x} y1="104" x2={x + (x - 160) * 0.08} y2="150" stroke="rgba(110,60,20,0.18)" strokeWidth="2" />
+      ))}
+      <text className="bd-pie-name" x="160" y="163" textAnchor="middle">
+        Abby
+      </text>
+
+      {/* orilla de la costra, ondulada */}
+      <ellipse cx="160" cy="92" rx="146" ry="38" fill="#e3a14b" />
+      {PIE_CRIMP.map((p, i) => (
+        <circle key={i} cx={p.x} cy={p.y} r="10" fill="#f3bf6b" stroke="#c98a3c" strokeWidth="1.2" />
+      ))}
+
+      {/* el relleno de limón */}
+      <ellipse cx="160" cy="92" rx="124" ry="28" fill="url(#bdLemon)" />
+      <ellipse cx="140" cy="84" rx="60" ry="9" fill="rgba(255,255,255,0.35)" />
+
+      {/* rodajas de limón y crema batida en la orilla */}
+      {PIE_LEMONS.map((l) => (
+        <LemonSlice key={l.x} {...l} />
+      ))}
+      {PIE_CREAM.map((p, i) => (
+        <g key={i} transform={`translate(${p.x} ${p.y})`}>
+          <circle r="9.5" fill="#fffdf6" stroke="#eadfc6" strokeWidth="1" />
+          <circle cx="-1" cy="-6" r="5.5" fill="#fffdf6" stroke="#eadfc6" strokeWidth="1" />
+          <circle cx="-2" cy="-10" r="2.2" fill="#fff" />
+        </g>
+      ))}
+      {/* hojita de menta junto a la rodaja de enfrente */}
+      <path d="M176 108 q9 -10 20 -4 q-9 9 -20 4z" fill="#5bbf6a" />
+    </svg>
+  );
+}
+
 /* el micrófono solo funciona en https (o localhost) */
 const CAN_LISTEN =
   typeof window !== 'undefined' &&
@@ -286,11 +381,7 @@ function Cake() {
             </button>
           ))}
         </div>
-        <div className="bd-tier bd-tier--top" aria-hidden="true" />
-        <div className="bd-tier bd-tier--bottom" aria-hidden="true">
-          <span className="bd-cake-name">Abby</span>
-        </div>
-        <div className="bd-plate" aria-hidden="true" />
+        <LemonPie />
       </div>
 
       <p className="bd-cake-hint" aria-live="polite">
