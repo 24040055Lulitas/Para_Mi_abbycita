@@ -64,6 +64,7 @@ const SECTIONS = [
     color: '#2fbf7a',
     icon: <path d="M4 20L20 4M14 4h6v6M7 13l4 4" />,
   },
+  /* línea del tiempo oculta por ahora (no está terminada)
   {
     to: '/linea-de-tiempo',
     label: 'Línea del tiempo',
@@ -76,6 +77,7 @@ const SECTIONS = [
       </>
     ),
   },
+  */
 ];
 
 export default function SectionNav() {

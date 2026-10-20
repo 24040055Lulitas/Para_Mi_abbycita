@@ -193,10 +193,12 @@ export default function Home() {
               Tu rincón Tanjiro
               <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
             </Link>
+            {/* línea del tiempo oculta por ahora (no está terminada)
             <Link to="/linea-de-tiempo" className="timeline-link">
               Ver nuestra línea del tiempo
               <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
             </Link>
+            */}
           </div>
         </div>
       </Reveal>

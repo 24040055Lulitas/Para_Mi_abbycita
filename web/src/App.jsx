@@ -1,4 +1,4 @@
-import { HashRouter, Route, Routes } from 'react-router-dom';
+import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
 import Gate from './components/Gate/Gate';
 import MiniPlayer from './components/MiniPlayer/MiniPlayer';
 import SearchOverlay from './components/SearchOverlay/SearchOverlay';
@@ -11,7 +11,7 @@ import Nosotros from './pages/Nosotros/Nosotros';
 import Quiz from './pages/Quiz/Quiz';
 import Tanjiro from './pages/Tanjiro/Tanjiro';
 import Secret from './pages/Secret/Secret';
-import Timeline from './pages/Timeline/Timeline';
+// import Timeline from './pages/Timeline/Timeline';
 
 /* HashRouter (en vez de BrowserRouter) porque GitHub Pages sirve
    archivos estáticos sin reescritura de rutas en el servidor — con
@@ -35,7 +35,11 @@ export default function App() {
             <Route path="/nosotros" element={<Nosotros />} />
             <Route path="/quiz" element={<Quiz />} />
             <Route path="/tanjiro" element={<Tanjiro />} />
-            <Route path="/linea-de-tiempo" element={<Timeline />} />
+            {/* línea del tiempo oculta por ahora (no está terminada):
+                quien entre con el enlace vuelve al inicio. Para mostrarla
+                otra vez: element={<Timeline />} aquí, y descomentar sus
+                enlaces en SectionNav.jsx y Home.jsx */}
+            <Route path="/linea-de-tiempo" element={<Navigate to="/" replace />} />
             <Route path="/secreto" element={<Secret />} />
           </Routes>
           <SearchOverlay />
