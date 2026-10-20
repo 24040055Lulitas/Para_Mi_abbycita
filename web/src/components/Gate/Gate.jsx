@@ -29,8 +29,12 @@ const INTRO_PHRASES = [
 /* tiempos en segundos (deben coincidir con Gate.css) */
 const INTRO_FIRST_PHRASE_AT = 2.4;
 const INTRO_PHRASE_EVERY = 2.6;
-/* cuándo aparece el botón para ir a la carta (tras la última frase) */
-const INTRO_CTA_AT = INTRO_FIRST_PHRASE_AT + INTRO_PHRASE_EVERY * (INTRO_PHRASES.length - 1) + 1.4;
+const INTRO_LAST_PHRASE_AT = INTRO_FIRST_PHRASE_AT + INTRO_PHRASE_EVERY * (INTRO_PHRASES.length - 1);
+/* la firma aparece justo después de la última frase */
+const INTRO_SIGN = 'De Chris, tu gran amor';
+const INTRO_SIGN_AT = INTRO_LAST_PHRASE_AT + 1.2;
+/* cuándo aparece el botón para ir a la carta (tras la firma) */
+const INTRO_CTA_AT = INTRO_SIGN_AT + 1.2;
 
 /* estrellitas decorativas: posición (%), tamaño (px), color, retraso */
 const SPARKLES = [
@@ -232,6 +236,12 @@ export default function Gate({ children }) {
                 </p>
               ))}
             </div>
+            <p className="gate-intro-sign" style={{ animationDelay: `${INTRO_SIGN_AT}s` }}>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d={HEART_PATH} />
+              </svg>
+              {INTRO_SIGN}
+            </p>
             <button
               type="button"
               className="gate-intro-next"
