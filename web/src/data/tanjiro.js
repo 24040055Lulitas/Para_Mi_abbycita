@@ -59,6 +59,7 @@ export const TANJIRO_GALLERY = [
   [13, 'ojitos brillantes', 'Esos ojos enormes de emoción. Así te brillan a ti cuando algo te encanta.'],
   [14, 'primavera', 'Pétalos de cerezo y la boca abierta de felicidad. Puro día bonito.'],
   [15, '¡yo!', 'Mano arriba, la paz y la sonrisa más grande. Siempre listo para estar contigo.'],
+  [16, 'mi Tanjiro y yo', 'Abrazando a mi Tanjiro y poniendo mi mejor cara de cazador. Lo cuido mientras tú no estás.'],
 ].map(([n, title, words]) => ({ src: img(n), title, words }));
 
 /* video que se abre al entrar a la sección (una vez por visita) y que
