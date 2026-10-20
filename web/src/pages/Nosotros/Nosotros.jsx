@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Reveal from '../../components/Reveal';
+import SaveButton from '../../components/SaveButton/SaveButton';
 import { usePlayer } from '../../context/PlayerContext';
 import { COLOR_POEM, HEART_PHOTOS, NOSOTROS_SONG, POLAROIDS, VIDEOS } from '../../data/nosotros';
 import './Nosotros.css';
@@ -82,6 +83,7 @@ function PhotoViewer({ index, onClose, onStep }) {
             <p className="nos-viewer-count">
               {index + 1} de {ALL_PHOTOS.length}
             </p>
+            <SaveButton src={photo.src} label="Descargar foto" />
           </figcaption>
         </figure>
       )}
@@ -158,6 +160,7 @@ function VideoViewer({ index, onClose, onStep }) {
             <p className="nos-viewer-count">
               {index + 1} de {VIDEOS.length}
             </p>
+            <SaveButton src={video.src} label="Descargar video" />
           </figcaption>
         </figure>
       )}

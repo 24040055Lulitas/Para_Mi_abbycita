@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Reveal from '../../components/Reveal';
+import SaveButton from '../../components/SaveButton/SaveButton';
 import {
   BIRTHDAY_BILLIE,
   BIRTHDAY_STICKERS,
@@ -490,12 +491,16 @@ export default function Birthday() {
         <Reveal className="bd-section-head">
           <p className="bd-eyebrow">invitada especial</p>
           <h2 className="bd-h2">Billie vino a felicitarte</h2>
-          <img className="bd-billie-sticker" src={BIRTHDAY_STICKERS.billieTongue} alt="" aria-hidden="true" loading="lazy" />
+          <span className="bd-billie-sticker">
+            <img src={BIRTHDAY_STICKERS.billieTongue} alt="" loading="lazy" />
+            <SaveButton src={BIRTHDAY_STICKERS.billieTongue} variant="corner" label="Descargar sticker de Billie" />
+          </span>
         </Reveal>
         <Reveal className="bd-billie-grid">
           {BIRTHDAY_BILLIE.map((p, i) => (
             <figure key={p.src} className={`bd-photo${p.tall ? ' bd-photo--tall' : ''}`} style={{ '--i': i }}>
               <span className="bd-tape" aria-hidden="true" />
+              <SaveButton src={p.src} variant="corner" label={`Descargar: ${p.caption}`} />
               <img src={p.src} alt={p.caption} loading="lazy" />
               <figcaption>{p.caption}</figcaption>
             </figure>
@@ -512,11 +517,13 @@ export default function Birthday() {
         <Reveal className="bd-tanjiro-grid">
           {BIRTHDAY_TANJIRO.map((p, i) => (
             <figure key={p.src} className="bd-photo bd-photo--tj" style={{ '--i': i }}>
+              <SaveButton src={p.src} variant="corner" label={`Descargar: ${p.caption}`} />
               <img src={p.src} alt={p.caption} loading="lazy" />
               <figcaption>{p.caption}</figcaption>
             </figure>
           ))}
           <figure className="bd-photo bd-photo--sticker" style={{ '--i': BIRTHDAY_TANJIRO.length }}>
+            <SaveButton src={BIRTHDAY_STICKERS.tanjiro} variant="corner" label="Descargar: Tanjiro con gorrito" />
             <img src={BIRTHDAY_STICKERS.tanjiro} alt="Tanjiro con gorrito de fiesta" loading="lazy" />
             <figcaption>con gorrito y todo</figcaption>
           </figure>

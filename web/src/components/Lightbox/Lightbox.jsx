@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import SaveButton from '../SaveButton/SaveButton';
 import './Lightbox.css';
 
 /* visor de imagen reutilizable: pásale { src, alt } o null para cerrarlo */
@@ -17,6 +18,7 @@ export default function Lightbox({ image, onClose }) {
         <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></svg>
       </button>
       {image && <img className="lightbox-img" src={image.src} alt={image.alt || ''} onClick={(e) => e.stopPropagation()} />}
+      {image && <SaveButton src={image.src} label="Descargar imagen" className="lightbox-save" />}
     </div>
   );
 }

@@ -1,7 +1,8 @@
 /* Línea del tiempo — fotos reales, ordenadas de la más antigua a la más
    nueva usando el orden de exportación de WhatsApp (que conserva el orden
-   cronológico real de los mensajes) más un par de fechas confirmadas por
-   capturas de pantalla (23 de agosto y 13 de septiembre).
+   cronológico real de los mensajes) más una fecha confirmada por captura
+   de pantalla (13 de septiembre). La 017 es el día de las rosas, no el de
+   las primeras flores.
 
    Las 66 fotos originales están todas en /timeline/001.jpeg ... /timeline/066.jpeg
    por si quieres agregar más entradas o cambiar la foto de alguna — esto es
@@ -21,9 +22,9 @@ export const TIMELINE = [
     image: './timeline/008.jpeg',
   },
   {
-    date: '23 de agosto',
-    title: 'Las primeras flores',
-    text: 'Las primeras flores que te dio — así las describiste tú misma.',
+    date: 'Un día de rosas',
+    title: 'Las rosas',
+    text: 'Un ramo de rosas rojas y tus ojitos cerrados de felicidad.',
     image: './timeline/017.jpeg',
   },
   {
@@ -34,9 +35,9 @@ export const TIMELINE = [
   },
   {
     date: 'Otro día juntos',
-    title: 'Un cerdito de peluche',
+    title: 'Con nuestra hija Neeko',
     text: 'De esos días sin razón especial, que terminan siendo los mejores.',
-    image: './timeline/029.jpeg',
+    image: './timeline/027.jpeg',
   },
   {
     date: 'Otro día juntos',

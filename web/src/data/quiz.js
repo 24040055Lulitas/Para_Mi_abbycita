@@ -29,11 +29,11 @@ export const QUIZ = [
     note: 'Ferrero para ti, Taro para mí… con tu nombre escrito en el vaso.',
   },
   {
-    topic: 'el bote',
-    question: 'En el paseo en bote de noche, ¿quién iba de copiloto?',
-    options: ['Una rana de peluche', 'Rex, un dinosaurio de peluche', 'Un cerdito de peluche', 'Nadie, íbamos solos'],
-    answer: 1,
-    note: 'Rex, muy serio, cuidándonos del frío.',
+    topic: 'nuestra hija',
+    question: '¿Cómo se llama nuestra hija de peluche?',
+    options: ['Rex', 'Mochi', 'Neeko', 'Kiki'],
+    answer: 2,
+    note: 'Neeko, la más consentida de la familia.',
   },
   {
     topic: 'la canción',

@@ -20,7 +20,7 @@
 
 .lightbox-img {
   max-width: min(90vw, 720px);
-  max-height: 86vh;
+  max-height: calc(86vh - 70px);
   border-radius: 12px;
   box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6);
   object-fit: contain;
@@ -40,6 +40,13 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+}
+
+.lightbox-save {
+  position: absolute;
+  left: 50%;
+  bottom: max(24px, env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
 }
 
 .lightbox-close svg {

@@ -28,13 +28,13 @@ export const HEART_PHOTOS = [
   },
   {
     src: './timeline/017.jpeg',
-    title: 'las primeras flores',
-    words: 'Tu cara al verlas vale más que cualquier ramo del mundo.',
+    title: 'el día de las rosas',
+    words: 'Tus ojitos cerrados y las rosas en tus manos. Tu cara al verlas vale más que cualquier ramo del mundo.',
   },
   {
-    src: './timeline/029.jpeg',
-    title: 'tú y tus flores',
-    words: 'Si pudiera, te llenaría los días de flores, una por cada vez que me haces sonreír.',
+    src: './timeline/057.jpeg',
+    title: 'leyendo juntos',
+    words: 'Tú, yo y un papelito entre los dos. Lo que sea, si es contigo, me gusta.',
   },
   {
     src: './timeline/035.jpeg',
@@ -48,8 +48,8 @@ export const HEART_PHOTOS = [
   },
   {
     src: './timeline/027.jpeg',
-    title: 'una flor rosa',
-    words: 'Una flor rosa para la chica del pelo rosa. No había otra opción.',
+    title: 'con Neeko',
+    words: 'Nosotros con nuestra hija Neeko. La familia más bonita que conozco.',
   },
   {
     src: './timeline/040.jpeg',
@@ -70,9 +70,9 @@ export const POLAROIDS = [
     words: 'No necesitas filtro. Necesitas que alguien te lo diga más seguido, y aquí estoy.',
   },
   {
-    src: './timeline/028.jpeg',
-    title: 'mi flor',
-    words: 'De todas las flores que te he dado, tú sigues siendo la más bonita.',
+    src: './timeline/054.jpeg',
+    title: 'mi luciérnaga',
+    words: 'Esa noche buscando luciérnagas, y la luz más bonita eras tú.',
   },
   {
     src: './timeline/036.jpeg',
@@ -104,9 +104,9 @@ export const VIDEOS = [
   video(1, 'el paseo en bote', 'Las luces temblando en el agua y un frío que no nos importó.'),
   video(4, 'las primeras flores', 'Tu estado con las primeras flores que te di, y Billie de fondo. Lo vi y no pude dejar de sonreír.'),
   video(3, 'las rosas', 'Tú, las rosas y esa foto con los ojitos cerrados que tanto me gusta.'),
-  video(2, 'con canción de fondo', 'Nosotros dos y una canción sonando. Así quiero que se sienta todo.'),
-  video(6, 'tú y el dinosaurio', 'Te emocionaste con un dinosaurio en medio del mall, y yo me emocioné viéndote a ti.'),
-  video(5, 'una noche nuestra', 'Una noche cualquiera que terminó siendo de las que se recuerdan.'),
+  video(2, 'con Álvaro Díaz de fondo', 'Nosotros dos y una canción de Álvaro Díaz sonando. Así quiero que se sienta todo.'),
+  video(6, 'tú y el dinosaurio', 'Me hizo feliz cuando viste el dinosaurio y te emocionaste. Me hiciste feliz con solo verte.'),
+  video(5, 'una noche nuestra', 'Una noche cualquiera que terminó siendo de las que se recuerdan. Te ganeeee.'),
 ];
 
 /* "Carta a tus colores": versos del poema; '' deja un espacio entre

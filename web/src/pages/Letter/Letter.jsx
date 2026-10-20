@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Reveal from '../../components/Reveal';
+import SaveButton from '../../components/SaveButton/SaveButton';
 import { usePlayer } from '../../context/PlayerContext';
 import { resolveTrackRef } from '../../data/catalog';
 import { useScrollProgress } from '../../hooks/useScrollProgress';
@@ -86,8 +87,9 @@ export default function Letter() {
 
           <figure className="letter-polaroid letter-polaroid--right">
             <span className="letter-tape" aria-hidden="true" />
-            <img src="./timeline/017.jpeg" alt="Nosotros el día de las primeras flores" loading="lazy" />
-            <figcaption>el día de las primeras flores</figcaption>
+            <SaveButton src="./timeline/017.jpeg" variant="corner" label="Descargar foto" />
+            <img src="./timeline/017.jpeg" alt="Nosotros el día de las rosas" loading="lazy" />
+            <figcaption>el día de las rosas</figcaption>
           </figure>
 
           <Reveal as="p">
@@ -132,6 +134,7 @@ export default function Letter() {
 
           <figure className="letter-polaroid letter-polaroid--left">
             <span className="letter-tape letter-tape--pink" aria-hidden="true" />
+            <SaveButton src="./timeline/026.jpeg" variant="corner" label="Descargar foto" />
             <img src="./timeline/026.jpeg" alt="Dos tés de burbujas con nuestros nombres" loading="lazy" />
             <figcaption>Ferrero para ti, Taro para mí</figcaption>
           </figure>

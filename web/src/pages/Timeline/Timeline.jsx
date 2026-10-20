@@ -1,5 +1,6 @@
 import AuraParticles from '../../components/AuraParticles';
 import Reveal from '../../components/Reveal';
+import SaveButton from '../../components/SaveButton/SaveButton';
 import ScrollMeter from '../../components/ScrollMeter';
 import { TIMELINE } from '../../data/timeline';
 import './Timeline.css';
@@ -35,7 +36,10 @@ export default function Timeline() {
 
             <div className="timeline-photo">
               {entry.image ? (
-                <img src={entry.image} alt={entry.title} />
+                <>
+                  <img src={entry.image} alt={entry.title} />
+                  <SaveButton src={entry.image} variant="corner" label={`Descargar foto: ${entry.title}`} />
+                </>
               ) : (
                 <span className="timeline-photo-placeholder">agrega la foto aquí</span>
               )}

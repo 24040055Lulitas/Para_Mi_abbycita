@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Reveal from '../../components/Reveal';
+import SaveButton from '../../components/SaveButton/SaveButton';
 import { restartFromGate } from '../../components/Gate/restart';
 import { usePlayer } from '../../context/PlayerContext';
 import { TANJIRO_GALLERY, TANJIRO_PHOTOS, TANJIRO_SONG, TANJIRO_TRAITS } from '../../data/tanjiro';
@@ -117,6 +118,7 @@ function Viewer({ index, onClose, onStep }) {
           <p className="tj-viewer-count">
             {index + 1} de {TANJIRO_GALLERY.length}
           </p>
+          <SaveButton src={item.src} label="Descargar imagen" />
         </figcaption>
       </figure>
       <button
