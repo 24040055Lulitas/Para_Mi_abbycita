@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Reveal from '../../components/Reveal';
-import { ENMU, LOWER_MOONS, MUZAN, TANJIRO_PHOTOS, UPPER_MOONS, VILLAGERS } from '../../data/tanjiro';
+import { usePlayer } from '../../context/PlayerContext';
+import { ENMU, LOWER_MOONS, MUZAN, SLASH_MUSIC, TANJIRO_PHOTOS, UPPER_MOONS, VILLAGERS } from '../../data/tanjiro';
 import { createSlashSounds, loadMuted } from './slashSounds';
 import './SlashGame.css';
 
@@ -475,7 +476,7 @@ function SlashArena({ bests, onBest, onRanking, onClose }) {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     [...LOWER_MOONS, ENMU, ...VILLAGERS, ...UPPER_MOONS].forEach((f) => getImage(f.src));
-    const sfx = createSlashSounds();
+    const sfx = createSlashSounds(SLASH_MUSIC);
     sfxRef.current = sfx;
 
     const g = {
@@ -685,6 +686,7 @@ function SlashArena({ bests, onBest, onRanking, onClose }) {
       g.flashColor = '120, 0, 20';
       g.shake = 0.5;
       sfx.muzan();
+      sfx.switchMusic('boss');
       setMuzan('fight');
     };
 
@@ -970,6 +972,7 @@ function SlashArena({ bests, onBest, onRanking, onClose }) {
         setIsRecord(true);
       }
       sfx.end();
+      sfx.stopMusic();
       setSaved(null);
       setPhase('done');
     };
@@ -1007,6 +1010,7 @@ function SlashArena({ bests, onBest, onRanking, onClose }) {
       setSaved(null);
       setPhase('playing');
       sfx.unlock();
+      sfx.startMusic('normal');
     };
     gameRef.current = { start };
 
@@ -1234,7 +1238,30 @@ function SlashArena({ bests, onBest, onRanking, onClose }) {
   }, []);
 
   const mode = MODES[modeId];
-  const startGame = (id) => gameRef.current?.start(id);
+
+  /* la música de la página se pausa mientras se juega (el juego trae la
+     suya) y vuelve a sonar al cerrar el minijuego */
+  const { isPlaying, togglePlay } = usePlayer();
+  const resumeRef = useRef(false);
+  /* siempre la versión más nueva de togglePlay (la de un render viejo
+     todavía "cree" que la música está sonando) */
+  const toggleRef = useRef(togglePlay);
+  useEffect(() => {
+    toggleRef.current = togglePlay;
+  });
+  const startGame = (id) => {
+    if (isPlaying) {
+      togglePlay();
+      resumeRef.current = true;
+    }
+    gameRef.current?.start(id);
+  };
+  useEffect(
+    () => () => {
+      if (resumeRef.current) toggleRef.current();
+    },
+    []
+  );
 
   const toggleSound = () => {
     const next = !muted;
@@ -1282,8 +1309,8 @@ function SlashArena({ bests, onBest, onRanking, onClose }) {
         className={`sg-close sg-sound${muted ? ' is-muted' : ''}`}
         onClick={toggleSound}
         aria-pressed={!muted}
-        aria-label={muted ? 'Activar sonidos' : 'Silenciar sonidos'}
-        title={muted ? 'Activar sonidos' : 'Silenciar sonidos'}
+        aria-label={muted ? 'Activar sonidos y música' : 'Silenciar sonidos y música'}
+        title={muted ? 'Activar sonidos y música' : 'Silenciar sonidos y música'}
       >
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M4 9v6h4l5 4V5L8 9H4z" />

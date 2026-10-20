@@ -7,9 +7,10 @@ import { resolveTrackRef } from '../../data/catalog';
 import { useScrollProgress } from '../../hooks/useScrollProgress';
 import './Letter.css';
 
-/* la canción que sonó al entrar ("i love you"); si la cambias en
-   Gate.jsx, cámbiala también aquí para que la posdata tenga sentido */
-const LETTER_SONG = resolveTrackRef({ album: 'wwafawdwg', track: 12 });
+/* la canción que sonó al entrar ("we fell in love in october"); si la
+   cambias en Gate.jsx, cámbiala también aquí para que la posdata tenga
+   sentido */
+const LETTER_SONG = resolveTrackRef({ single: 'we-fell-in-love-in-october' });
 
 const HEART_PATH =
   'M12 20s-6.7-4.2-9-8C1.3 9.1 2.6 5.6 5.7 5c2.1-.4 3.9.6 4.9 2.2L12 9l1.4-1.8c1-1.6 2.8-2.6 4.9-2.2 3.1.6 4.4 4.1 2.7 7-2.3 3.8-9 8-9 8z';

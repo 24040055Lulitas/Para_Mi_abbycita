@@ -38,9 +38,9 @@ export const QUIZ = [
   {
     topic: 'la canción',
     question: '¿Qué canción sonó cuando entraste por primera vez a tu lugar?',
-    options: ['bad guy', 'i love you', 'Happier Than Ever', 'BLUE'],
+    options: ['bad guy', 'we fell in love in october', 'i love you', 'BLUE'],
     answer: 1,
-    note: '«i love you». Y no fue casualidad.',
+    note: '«we fell in love in october». Y no fue casualidad.',
   },
   {
     topic: 'tu lugar',

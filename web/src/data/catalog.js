@@ -86,6 +86,16 @@ export const ALBUMS = {
 /* canciones que no pertenecen a ninguno de los 3 álbumes de arriba
    (sencillos / soundtrack), usadas también en la sección de favoritas */
 export const SINGLES = {
+  /* la canción de la entrada; vive en web/public/canciones/ (no en el
+     sitio estático), por eso la ruta es relativa */
+  'we-fell-in-love-in-october': {
+    title: 'we fell in love in october',
+    artist: 'girl in red',
+    subtitle: 'girl in red · sencillo · 2018',
+    file: './canciones/we-fell-in-love-in-october.mp3',
+    cover: './canciones/october-cover.svg',
+    dur: 187,
+  },
   'when-i-was-older': {
     title: 'WHEN I WAS OLDER',
     subtitle: 'sencillo · 2019',
@@ -119,6 +129,7 @@ export function resolveTrackRef(ref) {
     return {
       key: `single:${ref.single}`,
       title: s.title,
+      ...(s.artist && { artist: s.artist }),
       subtitle: s.subtitle,
       file: s.file,
       cover: s.cover,

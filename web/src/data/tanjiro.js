@@ -79,6 +79,13 @@ export const TANJIRO_SONG = {
 
 /* ---------- minijuego "Corte de demonios" ---------- */
 
+/* música de la partida: el tema de Tengen Uzui suena normal y, cuando
+   aparece Muzan, cambia a la pelea final contra Gyutaro */
+export const SLASH_MUSIC = {
+  normal: './canciones/tengen-uzui-theme.mp3',
+  boss: './canciones/tengen-vs-gyutaro.mp3',
+};
+
 const face = (name) => `./tanjiro/faces/${name}.jpg`;
 
 /* Lunas Inferiores: los demonios normales que saltan */

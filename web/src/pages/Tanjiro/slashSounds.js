@@ -21,52 +21,88 @@ export function saveMuted(muted) {
   }
 }
 
-export function createSlashSounds() {
+/* volumen de la música de fondo (los efectos van encima, suavecitos) */
+const MUSIC_VOLUME = 0.3;
+const MUSIC_FADE = 1.4;
+
+export function createSlashSounds(musicTracks = {}) {
   let ctx = null;
   let out = null;
   let noise = null;
   let muted = loadMuted();
   let lastSwish = 0;
+  /* música: un <audio> por pista, pasando por el mismo audio para poder
+     controlar su volumen (en iPhone el volumen del <audio> no se puede
+     cambiar directamente) */
+  const music = {};
+  let musicWanted = null;
 
   /* el audio se crea con el primer toque (los navegadores lo exigen) */
-  const ready = () => {
-    if (muted) return null;
+  const ensure = () => {
+    if (ctx) return ctx;
     try {
-      if (!ctx) {
-        const Ctx = window.AudioContext || window.webkitAudioContext;
-        if (!Ctx) return null;
-        ctx = new Ctx();
-        const master = ctx.createGain();
-        master.gain.value = 0.55;
-        const soft = ctx.createBiquadFilter();
-        soft.type = 'lowpass';
-        soft.frequency.value = 5200;
-        /* eco muy leve: le da aire, como en una habitación tranquila */
-        const delay = ctx.createDelay();
-        delay.delayTime.value = 0.11;
-        const feedback = ctx.createGain();
-        feedback.gain.value = 0.22;
-        const wet = ctx.createGain();
-        wet.gain.value = 0.18;
-        master.connect(soft);
-        soft.connect(ctx.destination);
-        soft.connect(delay);
-        delay.connect(feedback);
-        feedback.connect(delay);
-        delay.connect(wet);
-        wet.connect(ctx.destination);
-        out = master;
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return null;
+      ctx = new Ctx();
+      const master = ctx.createGain();
+      master.gain.value = 0.55;
+      const soft = ctx.createBiquadFilter();
+      soft.type = 'lowpass';
+      soft.frequency.value = 5200;
+      /* eco muy leve: le da aire, como en una habitación tranquila */
+      const delay = ctx.createDelay();
+      delay.delayTime.value = 0.11;
+      const feedback = ctx.createGain();
+      feedback.gain.value = 0.22;
+      const wet = ctx.createGain();
+      wet.gain.value = 0.18;
+      master.connect(soft);
+      soft.connect(ctx.destination);
+      soft.connect(delay);
+      delay.connect(feedback);
+      feedback.connect(delay);
+      delay.connect(wet);
+      wet.connect(ctx.destination);
+      out = master;
 
-        const len = ctx.sampleRate;
-        noise = ctx.createBuffer(1, len, ctx.sampleRate);
-        const d = noise.getChannelData(0);
-        for (let i = 0; i < len; i += 1) d[i] = Math.random() * 2 - 1;
-      }
-      if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+      const len = ctx.sampleRate;
+      noise = ctx.createBuffer(1, len, ctx.sampleRate);
+      const d = noise.getChannelData(0);
+      for (let i = 0; i < len; i += 1) d[i] = Math.random() * 2 - 1;
+      /* si está en silencio, todo (también la música) queda callado */
+      if (muted) ctx.suspend().catch(() => {});
       return ctx;
     } catch {
+      ctx = null;
       return null;
     }
+  };
+
+  /* para los efectos: null si está en silencio */
+  const ready = () => {
+    if (muted || !ensure()) return null;
+    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+    return ctx;
+  };
+
+  const track = (name) => {
+    if (!music[name] && musicTracks[name] && ensure()) {
+      const el = new Audio(musicTracks[name]);
+      el.loop = true;
+      el.preload = 'auto';
+      const gain = ctx.createGain();
+      gain.gain.value = 0;
+      ctx.createMediaElementSource(el).connect(gain).connect(ctx.destination);
+      music[name] = { el, gain };
+    }
+    return music[name];
+  };
+
+  const fadeTo = (tr, value, sec) => {
+    const t = ctx.currentTime;
+    tr.gain.gain.cancelScheduledValues(t);
+    tr.gain.gain.setValueAtTime(tr.gain.gain.value, t);
+    tr.gain.gain.linearRampToValueAtTime(value, t + sec);
   };
 
   /* ruido filtrado: soplos y cortes */
@@ -119,6 +155,52 @@ export function createSlashSounds() {
     /* para "despertar" el audio dentro de un toque */
     unlock() {
       ready();
+    },
+    /* empieza la música de la partida. Se llama dentro del toque de
+       "Entrar": ahí se "despiertan" todas las pistas (en iPhone, un
+       <audio> solo puede sonar después si empezó con un toque) */
+    startMusic(name) {
+      if (!ensure()) return;
+      if (!muted && ctx.state === 'suspended') ctx.resume().catch(() => {});
+      Object.keys(musicTracks).forEach((n) => {
+        const tr = track(n);
+        if (!tr) return;
+        tr.el.currentTime = 0;
+        const p = tr.el.play();
+        if (n !== name) p?.then(() => tr.el.pause()).catch(() => {});
+        else p?.catch(() => {});
+      });
+      this.switchMusic(name, 0.8);
+    },
+    /* cambia de pista con un fundido (por ejemplo, cuando llega Muzan) */
+    switchMusic(name, fade = MUSIC_FADE) {
+      if (!ctx) return;
+      musicWanted = name;
+      Object.entries(music).forEach(([n, tr]) => {
+        if (n === name) {
+          if (tr.el.paused) {
+            tr.el.currentTime = 0;
+            tr.el.play()?.catch(() => {});
+          }
+          fadeTo(tr, MUSIC_VOLUME, fade);
+        } else {
+          fadeTo(tr, 0, fade);
+          setTimeout(() => {
+            if (musicWanted !== n) tr.el.pause();
+          }, fade * 1000 + 150);
+        }
+      });
+    },
+    /* se apaga la música despacito (fin de la partida) */
+    stopMusic(fade = MUSIC_FADE) {
+      if (!ctx) return;
+      musicWanted = null;
+      Object.values(music).forEach((tr) => {
+        fadeTo(tr, 0, fade);
+        setTimeout(() => {
+          if (!musicWanted) tr.el.pause();
+        }, fade * 1000 + 150);
+      });
     },
     /* soplo de la espada al mover rápido el dedo */
     swish(speed = 1) {
@@ -186,6 +268,12 @@ export function createSlashSounds() {
       [784, 659, 523].forEach((f, i) => tone({ at: i * 0.12, freq: f, dur: 0.9, gain: 0.028 }));
     },
     close() {
+      musicWanted = null;
+      Object.values(music).forEach((tr) => {
+        tr.el.pause();
+        tr.el.removeAttribute('src');
+        tr.el.load();
+      });
       if (ctx) ctx.close().catch(() => {});
       ctx = null;
     },
