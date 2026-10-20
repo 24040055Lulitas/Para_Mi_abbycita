@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePlayer } from '../../context/PlayerContext';
+import { BIRTHDAY_VIDEO } from '../../data/birthday';
 import { resolveTrackRef } from '../../data/catalog';
+import IntroVideo from '../IntroVideo/IntroVideo';
 import './Gate.css';
 
 export const SESSION_KEY = 'abby-gate-entered';
@@ -54,9 +56,10 @@ export default function Gate({ children }) {
   });
   const [opened, setOpened] = useState(false);
   const [intro, setIntro] = useState(false);
+  const [birthdayVideo, setBirthdayVideo] = useState(false);
   const enterBtnRef = useRef(null);
   const skipBtnRef = useRef(null);
-  const { playTrackRef } = usePlayer();
+  const { playTrackRef, current, isPlaying, togglePlay } = usePlayer();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -83,12 +86,25 @@ export default function Gate({ children }) {
     setIntro(true);
   };
 
-  /* "Hoy es un día especial": cierra la entrada y abre el cumpleaños
-     (de ahí sigue la carta) */
+  /* "Hoy es un día especial": primero el video de cumpleaños a pantalla
+     completa (con la música en pausa para que se escuche), y al terminar
+     abre el cumpleaños con la canción de Billie de fondo otra vez */
   const goToBirthday = () => {
+    if (isPlaying) togglePlay();
+    setBirthdayVideo(true);
+  };
+
+  const afterBirthdayVideo = useCallback(() => {
+    setBirthdayVideo(false);
     navigate('/cumpleanos');
     finish();
-  };
+    if (!ENTRANCE_TRACK) return;
+    if (current?.key === ENTRANCE_TRACK.key) {
+      if (!isPlaying) togglePlay();
+    } else {
+      playTrackRef(ENTRANCE_TRACK);
+    }
+  }, [current, finish, isPlaying, navigate, playTrackRef, togglePlay]);
 
   /* "Saltar": directo al inicio, sin carta */
   const skipToHome = () => {
@@ -103,6 +119,9 @@ export default function Gate({ children }) {
   return (
     <>
       {children}
+      {birthdayVideo && (
+        <IntroVideo src={BIRTHDAY_VIDEO} label="Video de cumpleaños" onDone={afterBirthdayVideo} />
+      )}
       <div
         className={`gate${entered ? ' is-leaving' : ''}${opened ? ' is-opened' : ''}${intro ? ' is-intro' : ''}`}
         aria-hidden={entered}

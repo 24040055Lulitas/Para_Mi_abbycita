@@ -2,10 +2,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Reveal from '../../components/Reveal';
 import SaveButton from '../../components/SaveButton/SaveButton';
+import { usePlayer } from '../../context/PlayerContext';
 import {
   BIRTHDAY_BILLIE,
   BIRTHDAY_STICKERS,
   BIRTHDAY_TANJIRO,
+  BIRTHDAY_VIDEO,
+  BIRTHDAY_VIDEO_POSTER,
   BIRTHDAY_WISHES,
 } from '../../data/birthday';
 import './Birthday.css';
@@ -51,10 +54,12 @@ const BALLOON_BACK_MS = 3500;
 const CANDLES = String(AGE).split('');
 const CANDLE_COLORS = ['#ff7eb6', '#7cc6ff'];
 
-/* soplido: volumen (rms 0–1) que cuenta como soplar y cuánto tiempo
-   seguido hay que soplar para apagar cada velita */
-const BLOW_RMS = 0.2;
-const BLOW_MS = 160;
+/* soplido: volumen mínimo (rms 0–1) que cuenta como soplar, cuánto se
+   mide el ruido del cuarto al empezar y cuánto tiempo seguido hay que
+   soplar para apagar cada vela */
+const BLOW_MIN_RMS = 0.07;
+const BLOW_CALIBRATE_MS = 500;
+const BLOW_MS = 220;
 
 /* explosión de confeti al apagar todas las velas */
 const BURST = Array.from({ length: 64 }, (_, i) => {
@@ -92,6 +97,49 @@ function Title() {
   );
 }
 
+/* "pop" suave al reventar un globo: un soplo de ruido corto más un
+   "blup" grave, generados aquí mismo (sin archivo de audio) */
+let popCtx = null;
+function playPop() {
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    popCtx = popCtx || new Ctx();
+    const ctx = popCtx;
+    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+    const t = ctx.currentTime;
+
+    const len = Math.floor(ctx.sampleRate * 0.07);
+    const buffer = ctx.createBuffer(1, len, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < len; i += 1) data[i] = (Math.random() * 2 - 1) * (1 - i / len) ** 3;
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+    const band = ctx.createBiquadFilter();
+    band.type = 'bandpass';
+    band.frequency.value = 900 + Math.random() * 500;
+    band.Q.value = 0.8;
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.value = 0.18;
+    noise.connect(band).connect(noiseGain).connect(ctx.destination);
+    noise.start(t);
+
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(520 + Math.random() * 140, t);
+    osc.frequency.exponentialRampToValueAtTime(160, t + 0.09);
+    const oscGain = ctx.createGain();
+    oscGain.gain.setValueAtTime(0.0001, t);
+    oscGain.gain.exponentialRampToValueAtTime(0.1, t + 0.005);
+    oscGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+    osc.connect(oscGain).connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.13);
+  } catch {
+    /* sin audio no pasa nada */
+  }
+}
+
 function Balloons({ count, onPop }) {
   const [popped, setPopped] = useState({});
   const timers = useRef([]);
@@ -100,6 +148,7 @@ function Balloons({ count, onPop }) {
 
   const pop = (i) => {
     if (popped[i]) return;
+    playPop();
     setPopped((p) => ({ ...p, [i]: true }));
     onPop();
     timers.current.push(
@@ -264,8 +313,10 @@ function Cake() {
   const [lit, setLit] = useState(() => CANDLES.map(() => true));
   const [wished, setWished] = useState(false);
   const [burst, setBurst] = useState(0);
-  const [mic, setMic] = useState('off'); // off | asking | on | denied
+  const [mic, setMic] = useState('off'); // off | asking | on | denied | missing
+  const [level, setLevel] = useState(0);
   const micRef = useRef(null);
+  const askRef = useRef(0);
   const blowRef = useRef(null);
   const out = lit.filter((l) => !l).length;
 
@@ -276,9 +327,16 @@ function Cake() {
     m.stream.getTracks().forEach((t) => t.stop());
     m.ctx.close().catch(() => {});
     micRef.current = null;
+    setLevel(0);
   }, []);
 
-  useEffect(() => stopMic, [stopMic]);
+  useEffect(
+    () => () => {
+      askRef.current += 1;
+      stopMic();
+    },
+    [stopMic]
+  );
 
   const blowOut = (i) => {
     if (!lit[i]) return;
@@ -309,35 +367,64 @@ function Cake() {
   };
 
   const listen = async () => {
-    if (mic === 'on') {
+    if (mic === 'on' || mic === 'asking') {
+      askRef.current += 1;
       stopMic();
       setMic('off');
       return;
     }
+    const ticket = ++askRef.current;
+    /* el audio se crea y se "despierta" aquí mismo, dentro del toque: si
+       se crea después de pedir permiso, el navegador lo deja pausado y
+       solo escucha silencio */
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    const ctx = new Ctx();
+    ctx.resume().catch(() => {});
     setMic('asking');
+    let stream;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: false },
       });
-      const Ctx = window.AudioContext || window.webkitAudioContext;
-      const ctx = new Ctx();
-      const analyser = ctx.createAnalyser();
-      analyser.fftSize = 1024;
-      ctx.createMediaStreamSource(stream).connect(analyser);
-      const buf = new Uint8Array(analyser.fftSize);
-      const m = { stream, ctx, raf: 0, blow: 0, last: performance.now() };
-      micRef.current = m;
-      setMic('on');
-      const tick = (now) => {
-        const dt = Math.min(100, now - m.last);
-        m.last = now;
-        analyser.getByteTimeDomainData(buf);
-        let sum = 0;
-        for (let k = 0; k < buf.length; k += 1) {
-          const v = (buf[k] - 128) / 128;
-          sum += v * v;
-        }
-        if (Math.sqrt(sum / buf.length) > BLOW_RMS) {
+    } catch (err) {
+      ctx.close().catch(() => {});
+      if (ticket !== askRef.current) return;
+      setMic(err?.name === 'NotAllowedError' || err?.name === 'SecurityError' ? 'denied' : 'missing');
+      return;
+    }
+    /* si mientras tanto tocó "Cancelar" o se fue de la página */
+    if (ticket !== askRef.current) {
+      stream.getTracks().forEach((t) => t.stop());
+      ctx.close().catch(() => {});
+      return;
+    }
+    if (ctx.state !== 'running') await ctx.resume().catch(() => {});
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 1024;
+    ctx.createMediaStreamSource(stream).connect(analyser);
+    const buf = new Uint8Array(analyser.fftSize);
+    const start = performance.now();
+    const m = { stream, ctx, raf: 0, blow: 0, last: start, noise: 0, samples: 0, shown: 0 };
+    micRef.current = m;
+    setMic('on');
+    const tick = (now) => {
+      const dt = Math.min(100, now - m.last);
+      m.last = now;
+      analyser.getByteTimeDomainData(buf);
+      let sum = 0;
+      for (let k = 0; k < buf.length; k += 1) {
+        const v = (buf[k] - 128) / 128;
+        sum += v * v;
+      }
+      const rms = Math.sqrt(sum / buf.length);
+      /* el primer medio segundo mide el ruido del cuarto; soplar es lo
+         que pase claramente por encima de eso */
+      if (now - start < BLOW_CALIBRATE_MS) {
+        m.noise = (m.noise * m.samples + rms) / (m.samples + 1);
+        m.samples += 1;
+      } else {
+        const threshold = Math.max(BLOW_MIN_RMS, m.noise * 3 + 0.02);
+        if (rms > threshold) {
           m.blow += dt;
           if (m.blow >= BLOW_MS) {
             m.blow = 0;
@@ -346,18 +433,22 @@ function Cake() {
         } else {
           m.blow = Math.max(0, m.blow - dt * 0.5);
         }
-        m.raf = requestAnimationFrame(tick);
-      };
+        /* la barrita de volumen se actualiza unas 12 veces por segundo */
+        if (now - m.shown > 80) {
+          m.shown = now;
+          setLevel(Math.min(1, rms / threshold));
+        }
+      }
       m.raf = requestAnimationFrame(tick);
-    } catch {
-      setMic('denied');
-    }
+    };
+    m.raf = requestAnimationFrame(tick);
   };
 
   let hint = `Pide un deseo y toca el ${CANDLES.join(' y el ')} para apagarlos.`;
-  if (mic === 'on') hint = 'Te escucho: sopla fuerte cerca del micrófono.';
+  if (mic === 'on') hint = 'Te escucho: sopla fuerte y seguido, cerquita del micrófono.';
   else if (mic === 'asking') hint = 'Dale permiso al micrófono para soplar de verdad.';
-  else if (mic === 'denied') hint = 'Sin micrófono no pasa nada: toca cada vela.';
+  else if (mic === 'denied') hint = 'El micrófono no tiene permiso. Puedes darlo en el candado de la barra de direcciones, o tocar cada vela.';
+  else if (mic === 'missing') hint = 'No encontré un micrófono. Toca cada vela para apagarla.';
   if (out > 0 && !wished) hint = '¡Ya casi! Falta una.';
 
   return (
@@ -397,22 +488,25 @@ function Cake() {
           </button>
         ) : (
           CAN_LISTEN &&
-          mic !== 'denied' && (
-            <button
-              type="button"
-              className={`bd-chip${mic === 'on' ? ' is-on' : ''}`}
-              onClick={listen}
-              disabled={mic === 'asking'}
-            >
+          mic !== 'denied' &&
+          mic !== 'missing' && (
+            <button type="button" className={`bd-chip${mic !== 'off' ? ' is-on' : ''}`} onClick={listen}>
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <rect x="9" y="3" width="6" height="11" rx="3" />
                 <path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
               </svg>
-              {mic === 'on' ? 'Dejar de escuchar' : 'Soplar de verdad (micrófono)'}
+              {mic === 'off' ? 'Soplar de verdad (micrófono)' : mic === 'asking' ? 'Cancelar' : 'Dejar de escuchar'}
             </button>
           )
         )}
       </div>
+
+      {/* barrita de volumen: al llenarse, cuenta como soplido */}
+      {mic === 'on' && !wished && (
+        <div className="bd-meter" aria-hidden="true">
+          <span style={{ transform: `scaleX(${level})` }} className={level >= 1 ? 'is-blowing' : ''} />
+        </div>
+      )}
 
       {burst > 0 && <Burst key={burst} />}
     </div>
@@ -422,6 +516,7 @@ function Cake() {
 export default function Birthday() {
   const navigate = useNavigate();
   const [pops, setPops] = useState(0);
+  const { isPlaying, togglePlay } = usePlayer();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -484,6 +579,25 @@ export default function Birthday() {
         <p className="bd-eyebrow">pide un deseo</p>
         <h2 className="bd-h2">Sopla las velitas</h2>
         <Cake />
+      </Reveal>
+
+      {/* ===== el video de la entrada, para volver a verlo ===== */}
+      <Reveal as="section" className="bd-section bd-video-section">
+        <p className="bd-eyebrow">para verlo otra vez</p>
+        <h2 className="bd-h2">Tu video de cumpleaños</h2>
+        <div className="bd-video">
+          <video
+            src={BIRTHDAY_VIDEO}
+            poster={BIRTHDAY_VIDEO_POSTER}
+            controls
+            playsInline
+            preload="none"
+            onPlay={() => {
+              if (isPlaying) togglePlay();
+            }}
+          />
+        </div>
+        <SaveButton src={BIRTHDAY_VIDEO} label="Descargar video" />
       </Reveal>
 
       {/* ===== Billie ===== */}

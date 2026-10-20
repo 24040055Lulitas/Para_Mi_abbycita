@@ -88,8 +88,8 @@ export default function Letter() {
           <figure className="letter-polaroid letter-polaroid--right">
             <span className="letter-tape" aria-hidden="true" />
             <SaveButton src="./timeline/017.jpeg" variant="corner" label="Descargar foto" />
-            <img src="./timeline/017.jpeg" alt="Nosotros el día de las rosas" loading="lazy" />
-            <figcaption>el día de las rosas</figcaption>
+            <img src="./timeline/017.jpeg" alt="Nosotros con las rosas" loading="lazy" />
+            <figcaption>tú, yo y las rosas</figcaption>
           </figure>
 
           <Reveal as="p">
@@ -101,9 +101,8 @@ export default function Letter() {
           </Reveal>
 
           <Reveal as="p">
-            De la cena con lluvia y las luces reflejadas en la banqueta. De las luciérnagas. De
-            la catedral iluminada en aquel pueblo mágico. De tus caras chistosas en el sillón
-            que nadie más ve, y de los calcetines disparejos.{' '}
+            De la catedral iluminada en aquel pueblo mágico, de tus caras chistosas que nadie
+            más ve y de los calcetines disparejos.{' '}
             <em className="hl">No son fechas: son los lugares donde aprendí a quererte.</em>
           </Reveal>
 
@@ -162,7 +161,7 @@ export default function Letter() {
 
           <div className="letter-signoff">
             <p className="letter-signoff-label">Siempre tuyo,</p>
-            <p className="letter-signature">el que te hizo esto</p>
+            <p className="letter-signature">Chris</p>
             <DoodleHeart className="letter-signature-heart" />
           </div>
 

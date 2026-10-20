@@ -61,6 +61,11 @@ export const TANJIRO_GALLERY = [
   [15, '¡yo!', 'Mano arriba, la paz y la sonrisa más grande. Siempre listo para estar contigo.'],
 ].map(([n, title, words]) => ({ src: img(n), title, words }));
 
+/* video que se abre al entrar a la sección (una vez por visita) y que
+   también queda dentro de la página */
+export const TANJIRO_VIDEO = './tanjiro/intro-tanjiro.mp4';
+export const TANJIRO_VIDEO_POSTER = './tanjiro/intro-tanjiro.jpg';
+
 /* su canción, para sonar desde el reproductor principal */
 export const TANJIRO_SONG = {
   key: 'extra:kamado-tanjiro-no-uta',

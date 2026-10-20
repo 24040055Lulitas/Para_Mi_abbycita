@@ -4,6 +4,11 @@
 
 const pic = (name, ext = 'jpg') => `./cumple/${name}.${ext}`;
 
+/* el video que se abre al tocar "Hoy es un día especial" (también está
+   dentro de la sección, para volver a verlo) */
+export const BIRTHDAY_VIDEO = './cumple/intro-cumple.mp4';
+export const BIRTHDAY_VIDEO_POSTER = './cumple/intro-cumple.jpg';
+
 /* stickers sin fondo (los de la portada y los que flotan en las fotos) */
 export const BIRTHDAY_STICKERS = {
   billie: pic('billie-gorrito', 'webp'),
@@ -29,7 +34,7 @@ export const BIRTHDAY_TANJIRO = [
 
 /* lo que le deseo para sus 19 */
 export const BIRTHDAY_WISHES = [
-  'Que tus 19 te traten con la misma ternura con la que tú tratas a todos.',
+  'Que tus 19 te traten con la misma ternura que me das.',
   'Que tengas noches tranquilas y canciones que te abracen cuando haga falta.',
   'Que te rías mucho, de esas risas tuyas que me cambian el día.',
   'Y que me dejes estar ahí para verlo, este año y todos los que vengan.',

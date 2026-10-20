@@ -71,8 +71,8 @@ export const POLAROIDS = [
   },
   {
     src: './timeline/054.jpeg',
-    title: 'mi luciérnaga',
-    words: 'Esa noche buscando luciérnagas, y la luz más bonita eras tú.',
+    title: 'los caracoles',
+    words: 'Perdón por no pisar caracoles (eran piñones). Te ves siempre hermosa.',
   },
   {
     src: './timeline/036.jpeg',

@@ -4,10 +4,20 @@ import Reveal from '../../components/Reveal';
 import SaveButton from '../../components/SaveButton/SaveButton';
 import { restartFromGate } from '../../components/Gate/restart';
 import { usePlayer } from '../../context/PlayerContext';
-import { TANJIRO_GALLERY, TANJIRO_PHOTOS, TANJIRO_SONG, TANJIRO_TRAITS } from '../../data/tanjiro';
+import IntroVideo from '../../components/IntroVideo/IntroVideo';
+import {
+  TANJIRO_GALLERY,
+  TANJIRO_PHOTOS,
+  TANJIRO_SONG,
+  TANJIRO_TRAITS,
+  TANJIRO_VIDEO,
+  TANJIRO_VIDEO_POSTER,
+} from '../../data/tanjiro';
 import SlashGame from './SlashGame';
 import { KatanaMeter, SwordTrail } from './TanjiroFx';
 import './Tanjiro.css';
+
+const INTRO_SEEN_KEY = 'abby-tanjiro-intro-seen';
 
 /* brasas que suben desde abajo, en rojo, naranja y amarillo */
 const EMBERS = Array.from({ length: 26 }, (_, i) => ({
@@ -153,6 +163,34 @@ export default function Tanjiro() {
   const { playTrackRef, current, isPlaying, togglePlay } = usePlayer();
   const songOn = current?.key === TANJIRO_SONG.key;
 
+  /* el video de entrada sale una vez por visita; mientras suena, la
+     música se pausa, y al terminar empieza la canción de Tanjiro */
+  const [intro, setIntro] = useState(() => {
+    try {
+      return sessionStorage.getItem(INTRO_SEEN_KEY) !== '1';
+    } catch {
+      return true;
+    }
+  });
+  const pausedForIntro = useRef(false);
+
+  useEffect(() => {
+    if (intro && isPlaying && !pausedForIntro.current) {
+      pausedForIntro.current = true;
+      togglePlay();
+    }
+  }, [intro, isPlaying, togglePlay]);
+
+  const afterIntro = useCallback(() => {
+    setIntro(false);
+    try {
+      sessionStorage.setItem(INTRO_SEEN_KEY, '1');
+    } catch {
+      /* sin almacenamiento, el video saldrá otra vez la próxima */
+    }
+    playTrackRef(TANJIRO_SONG);
+  }, [playTrackRef]);
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -230,6 +268,25 @@ export default function Tanjiro() {
         </div>
       </header>
 
+      {/* ===== el video de la entrada, para volver a verlo ===== */}
+      <Reveal as="section" className="tj-video-section">
+        <p className="tj-eyebrow">una canción para ti</p>
+        <h2 className="tj-h2">Tanjiro también te canta</h2>
+        <div className="tj-video">
+          <video
+            src={TANJIRO_VIDEO}
+            poster={TANJIRO_VIDEO_POSTER}
+            controls
+            playsInline
+            preload="none"
+            onPlay={() => {
+              if (isPlaying) togglePlay();
+            }}
+          />
+        </div>
+        <SaveButton src={TANJIRO_VIDEO} label="Descargar video" />
+      </Reveal>
+
       {/* ===== lo que tienen en común ===== */}
       <Reveal as="section" className="tj-traits-section">
         <span className="tj-cut" aria-hidden="true" />
@@ -304,6 +361,7 @@ export default function Tanjiro() {
       </div>
 
       <Viewer index={openIndex} onClose={close} onStep={step} />
+      {intro && <IntroVideo src={TANJIRO_VIDEO} label="Video de Tanjiro" onDone={afterIntro} />}
     </div>
   );
 }

@@ -1,0 +1,67 @@
+.intro-video {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  background: #000;
+  animation: introVideoIn 0.5s ease both;
+}
+
+@keyframes introVideoIn {
+  from {
+    opacity: 0;
+  }
+}
+
+.intro-video video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+.intro-video-skip,
+.intro-video-sound {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.intro-video-skip {
+  top: max(18px, env(safe-area-inset-top, 0px));
+  right: max(16px, env(safe-area-inset-right, 0px));
+  opacity: 0.8;
+}
+
+.intro-video-sound {
+  left: 50%;
+  bottom: max(32px, calc(env(safe-area-inset-bottom, 0px) + 20px));
+  transform: translateX(-50%);
+  border-color: rgba(255, 159, 203, 0.6);
+  background: rgba(255, 126, 182, 0.25);
+}
+
+.intro-video-skip svg,
+.intro-video-sound svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
